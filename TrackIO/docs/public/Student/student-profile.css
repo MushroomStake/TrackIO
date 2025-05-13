@@ -1,0 +1,140 @@
+/* General Styling */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+/* Add left margin for desktop mode to account for the navbar */
+@media (min-width: 1024px) {
+    body {
+        margin-left: 240px; /* Adjust based on the width of your navbar */
+    }
+}
+
+/* Profile Container */
+.profile-container {
+    background-color: #ffffff;
+    padding: 30px;
+    margin: 20px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+
+.profile-container h1 {
+    font-size: 2rem;
+    color: #007BFF;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Profile Header */
+.profile-header {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    text-align: center; /* Center text */
+    margin-bottom: 20px;
+}
+
+.profile-header p {
+    margin-top: 10px; /* Add spacing between the photo and email */
+    font-size: 1rem;
+    color: #555;
+}
+
+.profile-photo-container {
+    text-align: center;
+}
+
+#profile-photo {
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+#photo-upload {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Profile Information */
+.profile-info {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 20px;
+}
+
+.profile-column {
+    flex: 1;
+}
+
+.profile-column p {
+    margin-bottom: 15px;
+}
+
+.profile-column p strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.profile-column input,
+.profile-column select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease;
+}
+
+.profile-column input:focus,
+.profile-column select:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Save Button */
+#save-profile-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+#save-profile-button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-info {
+        flex-direction: column;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #profile-photo {
+        width: 100px;
+        height: 100px;
+    }
+}

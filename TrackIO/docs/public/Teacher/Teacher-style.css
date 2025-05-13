@@ -1,0 +1,315 @@
+/* General body styling */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Main header styling */
+.main-header {
+    display: flex;
+    justify-content: space-between; /* Space between left and right sections */
+    align-items: center;
+    background-color: transparent; /* Remove background color */
+    padding: 80px 20px;
+    position: fixed;
+    top: 10px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px;
+}
+
+/* Right-side header navigation */
+.right-header-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between notification and profile icons */
+    position: absolute;
+    top: 30px;
+    right: 40px; /* Align to the right side of the page */
+}
+
+.icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid white; /* Border-only style */
+    border-radius: 50%; /* Circular icons */
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.icon-link img {
+    width: 30px;
+    height: 30px;
+}
+
+.icon-link:hover {
+    border-color: #0056b3; /* Change border color on hover */
+}
+
+/* Notification Pop-Up Styling */
+.notification-popup {
+    position: absolute;
+    top: 90px; /* Position below the header */
+    right: 110px; /* Align to the right side */
+    width: 500px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.notification-popup.hidden {
+    display: none; /* Hide the pop-up by default */
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.notification-item:last-child {
+    border-bottom: none; /* Remove border for the last item */
+}
+
+.notification-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-name {
+    font-weight: bold;
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.notification-description {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Navigation bar styling */
+.navbar {
+    position: fixed;
+    top: 0; /* Move closer to the top */
+    left: 0; /* Keep it on the left side */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #007BFF;
+    padding: 60px 20px; /* Adjust padding for spacing */
+    height: calc(100vh - 20px); /* Full height minus top margin */
+    width: 200px; /* Fixed width for the navbar */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow on the right */
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.navbar.hidden {
+    transform: translateX(-100%);
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 15px 10px; /* Adjust padding for better spacing */
+    border-radius: 4px;
+}
+
+.navbar a:hover {
+    background-color: #0056b3;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    width: 100%; /* Ensure the item spans the full width of the navbar */
+    padding: 10px 0; /* Add vertical padding for better spacing */
+    position: relative;
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.nav-item img {
+    width: 30px; /* Smaller icon size */
+    height: 30px;
+    margin-right: 15px; /* Add space between the icon and text */
+}
+
+.nav-item span {
+    font-size: 16px; /* Adjust text size */
+    color: white;
+}
+
+.nav-item:hover {
+    background-color: #0056b3; /* Change background color on hover */
+    width: 100%; /* Ensure the hover background covers the full width */
+    border-radius: 4px; /* Optional: Add rounded corners */
+}
+
+.nav-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.3); /* Light line between items */
+}
+
+/* Burger button styling */
+.burger-button {
+    display: none; /* Hide by default */
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    font-size: 24px;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 900; /* Place it behind the navbar */
+    border-radius: 4px;
+}
+
+/* Check-In Container Styling */
+.check-in-container {
+    margin: 100px auto; /* Add a larger margin at the top to avoid overlap */
+    padding: 20px;
+    max-width: 500px;
+    text-align: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.remaining-hours {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.check-in-container p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.check-in-container input {
+    padding: 5px;
+    font-size: 14px;
+    width: 200px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.check-in-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.check-in-button:hover {
+    background-color: #0056b3;
+}
+
+.check-in-button.checked-out {
+    background-color: red;
+}
+
+.check-in-button.checked-out:hover {
+    background-color: darkred;
+}
+
+/* Geolocation Container Styling */
+.geolocation-container {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 500px;
+    text-align: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.geolocation-container h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.geolocation-container p {
+    font-size: 16px;
+    color: #555;
+}
+
+/* Style for the reset button */
+#reset-button {
+    background-color: #f44336; /* Red background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 10px 20px; /* Add padding */
+    text-align: center; /* Center text */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Inline-block for layout */
+    font-size: 16px; /* Font size */
+    margin: 10px 0; /* Margin for spacing */
+    cursor: pointer; /* Pointer cursor on hover */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+#reset-button:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+}
+
+/* Responsive styling for mobile and tablet */
+@media (max-width: 768px) {
+    .burger-button {
+        display: block; /* Show the burger button */
+    }
+
+    .navbar {
+        transform: translateX(-100%); /* Hide the navbar by default */
+    }
+
+    .navbar.visible {
+        transform: translateX(0); /* Show the navbar when toggled */
+    }
+
+    .navbar {
+        width: 180px; /* Further reduce navbar width for smaller screens */
+    }
+}
