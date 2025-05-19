@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Scanner</title>
+  <link rel="icon" type="image/png" href="pics/WYA-logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/class-management.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-green-50 font-[Poppins]">
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <button onclick="toggleSidebar()">✖</button>
+    <ul>
+      <li><a class="fas fa-chalkboard" href="sclass-management.html">Classes</a></li>
+      <li><a class="fa fa-user" href="sprofile.html">Profile</a></li>
+      <button id="logoutButton" class="logout-btn">Log Out</button>
+    </ul>
+  </div>
+
+  <div class="header">
+    <button onclick="toggleSidebar()" class="menu-btn">☰</button>
+    <h1>QR Scanner</h1>
+  </div>
+
+  <div class="text-center mt-2 text-sm text-green-900 font-semibold">
+    Hi Student!
+  </div>
+
+  <div class="flex justify-center items-center my-4">
+    <div class="w-64 h-64 bg-cream-100 rounded-md overflow-hidden" id="reader"></div>
+  </div>
+
+  <p id="result" class="text-center text-green-700 font-medium mb-2"></p>
+
+  <div class="fixed bottom-0 left-0 right-0 bg-green-700 py-2 flex justify-around items-center text-white">
+    <a href="sclass-management.html" class="text-xl bg-white text-green-700 p-2 rounded"><i class="fas fa-chalkboard"></i></a>
+    <button id="scan-again" class="text-xl bg-white text-green-700 p-2 rounded"><i class="fas fa-angle-right"></i></button>
+    <a href="sprofile.html" class="text-xl bg-white text-green-700 p-2 rounded"><i class="fas fa-user"></i></a>
+  </div>
+  
+
+  <!-- Modal -->
+  <div id="studentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center">
+      <h2 class="text-xl font-bold mb-4">Student Info</h2>
+      <p id="modalContent" class="text-sm mb-4"></p>
+      <div class="space-x-2">
+        <button id="confirmBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Confirm</button>
+        <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Location Confirmation Modal -->
+<div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white p-6 rounded-lg w-full max-w-sm text-center">
+    <h2 class="text-xl font-bold mb-4">Location Access Required</h2>
+    <p class="text-sm mb-4">
+      This app needs to track your location to verify attendance.<br>
+      Do you want to allow location tracking and continue?
+    </p>
+    <div class="space-x-2">
+      <button id="allowLocationBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Allow</button>
+      <button id="denyLocationBtn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Distance Confirmation Modal -->
+<div id="distanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg text-center">
+    <div id="distanceModalContent" class="text-gray-800 mb-4"></div>
+    <div class="flex justify-end space-x-2">
+      <button onclick="closeDistanceModal()" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+      <button id="confirmDistanceBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Proceed</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="./js/scripts.js"></script>
+  <script type="module" src="./js/qr-scanner.js"></script>
+  <script type="module" src="js/class-management.js"></script>
+</body>
+</html>
