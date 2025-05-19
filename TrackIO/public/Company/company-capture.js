@@ -57,6 +57,7 @@ async function handleScan(qrText) {
     if (!student.studentID) {
         scanResult.textContent = "Invalid QR code!";
         scanResult.style.color = "red";
+        alert("Invalid QR code! Please scan a valid student QR code.");
         return;
     }
 
@@ -68,28 +69,36 @@ async function handleScan(qrText) {
     let now = new Date();
     let nowISO = now.toISOString();
 
-    if (!attendanceSnap.exists() || !attendanceSnap.data().checkedIn || attendanceSnap.data().checkedOut) {
-        // No record or already checked out: CHECK IN
-        await setDoc(attendanceRef, {
-            studentID: student.studentID,
-            email: student.email,
-            name: student.name,
-            checkedIn: nowISO,
-            checkedOut: null
-        });
-        action = "Check In";
-        message = `Checked in: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
-    } else {
-        // Already checked in, so CHECK OUT
-        await updateDoc(attendanceRef, {
-            checkedOut: nowISO
-        });
-        action = "Check Out";
-        message = `Checked out: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
-    }
+    try {
+        if (!attendanceSnap.exists() || !attendanceSnap.data().checkedIn || attendanceSnap.data().checkedOut) {
+            // No record or already checked out: CHECK IN
+            await setDoc(attendanceRef, {
+                studentID: student.studentID,
+                email: student.email,
+                name: student.name,
+                checkedIn: nowISO,
+                checkedOut: null
+            });
+            action = "Check In";
+            message = `Checked in: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
+            alert(`Success!\n${message}`);
+        } else {
+            // Already checked in, so CHECK OUT
+            await updateDoc(attendanceRef, {
+                checkedOut: nowISO
+            });
+            action = "Check Out";
+            message = `Checked out: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
+            alert(`Success!\n${message}`);
+        }
 
-    scanResult.textContent = message;
-    scanResult.style.color = action === "Check In" ? "green" : "blue";
+        scanResult.textContent = message;
+        scanResult.style.color = action === "Check In" ? "green" : "blue";
+    } catch (err) {
+        scanResult.textContent = "Attendance update failed!";
+        scanResult.style.color = "red";
+        alert("Attendance update failed! Please try again.");
+    }
 }
 
 function startScanner() {
