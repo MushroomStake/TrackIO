@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Register</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="../styles.css">
+    <!-- Firebase Authentication Script -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script type="module" src="Teacher-Auth.js"></script>
+
+</head>
+<body>
+     <div class="logo">
+        <img src="../img/logo2.png" alt="Profile Icon">
+        </div>    
+        <div class="form-container" id="form-container">
+        <!-- Login Form -->
+        <div id="login-form-container">
+            <h2>Faculty Login</h2>
+            <form id="loginForm">
+                <input type="email" id="lEmail" placeholder="Email" required />
+                <input type="password" id="lPassword" placeholder="Password" required />
+                <button id="submitLogin">Login</button>
+                <div id="loginMessage" style="display: none;"></div>
+            </form>
+
+            </div>
+                      <div class="logo-links">
+        <a href="../Student/student-login.html" aria-label="Student Login">
+            <img src="../img/student-icon.png" alt="Student Logo" class="logo-icon">
+        </a>
+        <a href="../Company/company-index.html" aria-label="Company Login">
+            <img src="../img/company-icon.png" alt="Company Logo" class="logo-icon">
+        </a>
+        <a href="Teacher-login.html" aria-label="Faculty Login">
+            <img src="../img/faculty-icon.png" alt="Faculty Logo" class="logo-icon">
+        </a>
+    </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            const emailInput = document.getElementById('lEmail');
+            const email = emailInput.value;
+            const loginMessage = document.getElementById('loginMessage');
+
+            // Basic email validation
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                event.preventDefault(); // Prevent form submission
+                loginMessage.style.display = 'block';
+                loginMessage.style.color = 'red';
+                loginMessage.textContent = 'Please enter a valid email address.';
+            } else {
+                loginMessage.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

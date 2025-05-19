@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Register</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+       <div class="logo">
+        <img src="../img/logo2.png" alt="Profile Icon">
+        </div>
+  <div class="form-container" id="form-container">
+    <div id="register-form-container">
+      <h2>Student Register</h2>
+      <form id="completeProfileForm">
+        <input type="email" id="rEmail" placeholder="Email" required />
+        <input type="text" id="rFirstName" placeholder="First Name" required />
+        <input type="text" id="rLastName" placeholder="Last Name" required />
+        <input type="password" id="rPassword" placeholder="Password" required />
+        <input type="password" id="rConfirmPassword" placeholder="Confirm Password" required />
+        <button type="submit" id="submitCompleteProfile">Complete Registration</button>
+        <div id="registerMessage"></div>
+      </form>
+      <div class="toggle-link">
+        <p>Already have an account? <a href="student-login.html">Login</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("completeProfileForm");
+    const emailInput = document.getElementById("rEmail");
+    const firstNameInput = document.getElementById("rFirstName");
+    const lastNameInput = document.getElementById("rLastName");
+    const passwordInput = document.getElementById("rPassword");
+    const confirmPasswordInput = document.getElementById("rConfirmPassword");
+    const messageDiv = document.getElementById("registerMessage");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      if (!email || !firstName || !lastName || !password || !confirmPassword) {
+        messageDiv.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        messageDiv.textContent = "Passwords do not match.";
+        return;
+      }
+
+      // Save details to localStorage
+      localStorage.setItem("pendingVerificationEmail", email);
+      localStorage.setItem("tempFirstName", firstName);
+      localStorage.setItem("tempLastName", lastName);
+      localStorage.setItem("tempPassword", password);
+
+
+      // Go to verification
+      window.location.href = "verification.html";
+    });
+  </script>
+</body>
+</html>

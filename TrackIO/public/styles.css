@@ -1,0 +1,127 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to bottom, #ffffff 80%, #b3e5fc); /* 80% white, 20% light blue/cyan */
+}
+
+/* Form container styling */
+.form-container {
+    width: 300px;
+    padding: 30px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin: 0; /* Center the form container */
+}
+
+.form-container h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+.toggle-link {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.toggle-link a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.toggle-link a:hover {
+    text-decoration: underline;
+}
+
+.message {
+    background-color: hsl(327, 90%, 28%);
+    text-align: center;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 1rem;
+    opacity: 0;
+    animation: fadeOut 7s forwards;
+    color: white; /* Red color for error messages */
+}
+
+.messageDiv {
+    display: none;
+    background-color: #f8d7da; /* Light red background for errors */
+    color: #721c24; /* Dark red text for errors */
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    text-align: center;
+}
+
+    .hidden {
+        display: none;
+    }
+
+    .logo img {
+        width: 35em;
+        height: 35em;
+    }
+
+    /* Hide the logo image on mobile devices */
+    @media (max-width: 768px) {
+        .logo img {
+            display: none;
+        }
+    }
+
+    /* Logo Links Section */
+.logo-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between logos */
+    margin-top: 20px;
+}
+
+.logo-links a {
+    text-decoration: none;
+}
+
+.logo-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Make the logos circular */
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
+}
+
+.logo-icon:hover {
+    transform: scale(1.1); /* Slight zoom effect on hover */
+}
