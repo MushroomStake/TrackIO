@@ -8,6 +8,7 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
     <link rel="stylesheet" href="company-dashboard.css">
+    <link rel="stylesheet" href="company-capture.css"> <!-- Link to external CSS -->
 </head>
 <body>
    
@@ -26,9 +27,14 @@
     <!-- Notification Pop-Up -->
     <div class="notification-popup hidden" id="notification-popup"></div>
 
-    <!-- Navigation Bar -->
+ <!-- Navigation Bar -->
     <nav class="navbar">
         <a href="company-dashboard.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="company-applicant.html" class="nav-item" aria-label="Company Dashboard">
             <img src="../img/applicant.png" alt="Company Dashboard">
             <span>Applicants</span>
         </a>
@@ -37,18 +43,17 @@
             <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
             <span>Evaluate Student</span>
         </a>
-
+        
         <a href="company-capture.html" class="nav-item" aria-label="Company Dashboard">
             <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
             <span>Student Attendance</span>
         </a>
-            
     </nav>
 
     <!-- Camera QR Scanner Section -->
 <div id="qr-scanner-section" style="text-align:center; margin: 32px 0;">
     <h2>Scan Student QR Code</h2>
-    <video id="qr-video" width="320" height="240" style="border:1px solid #ccc;"></video>
+    <div id="qr-video" style="width:320px; height:240px; border:1px solid #ccc; margin:0 auto;"></div>
     <div id="scan-result" style="margin-top: 16px; font-weight: bold;"></div>
     <button id="start-scan-btn">Start Scanning</button>
     <button id="stop-scan-btn" style="display:none;">Stop Scanning</button>

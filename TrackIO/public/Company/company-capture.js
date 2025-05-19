@@ -41,12 +41,12 @@ let html5QrCode = null;
 function parseStudentQR(qrText) {
     // Expecting format:
     // Email: ...\nName: Last, First Middle\nStudent ID: 123456
-    const studentIdMatch = qrText.match(/Student ID:\s*(\S+)/);
+    // Remove studentID extraction for now
     const emailMatch = qrText.match(/Email:\s*([^\n]+)/);
     const nameMatch = qrText.match(/Name:\s*([^\n]+)/);
 
     return {
-        studentID: studentIdMatch ? studentIdMatch[1] : "",
+        // studentID: studentIdMatch ? studentIdMatch[1] : "",
         email: emailMatch ? emailMatch[1] : "",
         name: nameMatch ? nameMatch[1] : ""
     };
@@ -54,15 +54,16 @@ function parseStudentQR(qrText) {
 
 async function handleScan(qrText) {
     const student = parseStudentQR(qrText);
-    if (!student.studentID) {
+    // Remove student.studentID check for now
+    if (!student.email) {
         scanResult.textContent = "Invalid QR code!";
         scanResult.style.color = "red";
         alert("Invalid QR code! Please scan a valid student QR code.");
         return;
     }
 
-    // Check Firestore for last attendance record for this student
-    const attendanceRef = doc(db, "attendance", student.studentID);
+    // Use email as unique identifier for attendance
+    const attendanceRef = doc(db, "attendance", student.email);
     const attendanceSnap = await getDoc(attendanceRef);
 
     let action, message;
@@ -73,14 +74,14 @@ async function handleScan(qrText) {
         if (!attendanceSnap.exists() || !attendanceSnap.data().checkedIn || attendanceSnap.data().checkedOut) {
             // No record or already checked out: CHECK IN
             await setDoc(attendanceRef, {
-                studentID: student.studentID,
+                // studentID: student.studentID, // removed
                 email: student.email,
                 name: student.name,
                 checkedIn: nowISO,
                 checkedOut: null
             });
             action = "Check In";
-            message = `Checked in: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
+            message = `Checked in: ${student.name} (${student.email}) at ${now.toLocaleString()}`;
             alert(`Success!\n${message}`);
         } else {
             // Already checked in, so CHECK OUT
@@ -88,7 +89,7 @@ async function handleScan(qrText) {
                 checkedOut: nowISO
             });
             action = "Check Out";
-            message = `Checked out: ${student.name} (${student.studentID}) at ${now.toLocaleString()}`;
+            message = `Checked out: ${student.name} (${student.email}) at ${now.toLocaleString()}`;
             alert(`Success!\n${message}`);
         }
 

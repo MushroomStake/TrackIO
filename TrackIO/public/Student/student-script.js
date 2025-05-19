@@ -140,459 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
-
-    //Start of Check in and check out
-// Initialize Firebase Firestore
-let checkInTime = null;
-let checkOutTime = null;
-let isCheckedIn = false;
-let countdownInterval = null;
-let companyGeofences = [];
-
-const checkInButton = document.getElementById('check-in-button');
-const checkOutButton = document.getElementById("check-out-btn");
-const startTimeInput = document.getElementById('start-time');
-const endTimeInput = document.getElementById('end-time');
-const remainingHoursElement = document.getElementById('dashboard-remaining-hours');
-const calendarEl = document.getElementById('calendar');
-
-// ✅ Create countdown element if not exists
-let countdownEl = document.getElementById("countdown-timer");
-if (!countdownEl) {
-    countdownEl = document.createElement("span");
-    countdownEl.id = "countdown-timer";
-    countdownEl.style.display = "block";
-    countdownEl.style.marginTop = "10px";
-    countdownEl.style.fontWeight = "bold";
-    document.querySelector('.check-in-container')?.appendChild(countdownEl);
-}
-
-// Helper: Format date to YYYY-MM-DD in Asia/Manila
-function getCurrentDate() {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Manila',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-    });
-    return formatter.format(new Date());
-}
-
-// Helper: Convert AM/PM time to 24-hour format for calendar
-function convertTo24HourFormat(timeStr) {
-    const [time, modifier] = timeStr.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    if (modifier === 'AM' && hours === 12) hours = 0;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-}
-
-function startCountdown(checkInTimeStr) {
-    if (!checkInTimeStr) return;
-
-    clearInterval(countdownInterval);
-
-    const now = new Date();
-    const [time, modifier] = checkInTimeStr.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    if (modifier === 'AM' && hours === 12) hours = 0;
-
-    const checkInDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
-
-    countdownInterval = setInterval(() => {
-        const current = new Date();
-        const diffMs = current - checkInDate;
-
-        if (diffMs <= 0) {
-            countdownEl.textContent = `Time Elapsed: 0m`;
-            return;
-        }
-
-        const hoursElapsed = Math.floor(diffMs / 3600000);
-        const minutesElapsed = Math.floor((diffMs % 3600000) / 60000);
-        countdownEl.textContent = `Duration: ${hoursElapsed > 0 ? `${hoursElapsed}hr ` : ''}${minutesElapsed}m`;
-    }, 1000);
-}
-
-
-// ✅ Stop Timer
-function stopCountdown() {
-    clearInterval(countdownInterval);
-    countdownEl.textContent = '';
-}
-
-// Store/Update Check-in/out Data (with duration)
-async function storeCheckInOutData(user, checkInTime, checkOutTime) {
-    if (!user?.uid) return console.error("No authenticated user found.");
-    try {
-        const studentDocRef = doc(db, "students", user.uid);
-        const studentDoc = await getDoc(studentDocRef);
-        let checkInOutData = studentDoc.exists() ? (studentDoc.data().checkInOutData || []) : [];
-
-        const currentDate = getCurrentDate();
-        const existingIndex = checkInOutData.findIndex(entry => entry.date === currentDate);
-
-        if (existingIndex !== -1) {
-            const updatedEntry = { ...checkInOutData[existingIndex] };
-
-            if (checkInTime && !updatedEntry.checkInTime) updatedEntry.checkInTime = checkInTime;
-            if (checkOutTime && !updatedEntry.checkOutTime) updatedEntry.checkOutTime = checkOutTime;
-
-            // Calculate duration if both check-in and check-out times exist
-            if (updatedEntry.checkInTime && updatedEntry.checkOutTime) {
-                updatedEntry.duration = calculateDuration(updatedEntry.checkInTime, updatedEntry.checkOutTime);
-            }
-
-            checkInOutData[existingIndex] = updatedEntry;
-        } else {
-            // Calculate duration if both check-in and check-out times exist
-            const newEntry = { 
-                checkInTime: checkInTime || null, 
-                checkOutTime: checkOutTime || null, 
-                date: currentDate 
-            };
-
-            if (newEntry.checkInTime && newEntry.checkOutTime) {
-                newEntry.duration = calculateDuration(newEntry.checkInTime, newEntry.checkOutTime);
-            }
-
-            checkInOutData.push(newEntry);
-        }
-
-        await updateDoc(studentDocRef, { checkInOutData });
-        console.log("Check-in/out data saved.");
-    } catch (error) {
-        console.error("Error saving check-in/out data:", error);
-    }
-}
-
-/// Function to calculate total worked hours
-function calculateTotalWorkedHours(checkInOutData) {
-    let totalWorkedMinutes = 0;
-
-    checkInOutData.forEach(entry => {
-        if (entry.checkInTime && entry.checkOutTime) {
-            const duration = calculateDuration(entry.checkInTime, entry.checkOutTime); // e.g., "2hr 30m"
-            const [hours, minutes] = duration.split('hr').map(str => parseInt(str.trim().replace('m', '')) || 0);
-            totalWorkedMinutes += (hours * 60) + minutes;
-        }
-    });
-
-    return totalWorkedMinutes;
-}
-
-// Function to update remaining hours using Firestore's remainingHours field
-async function updateRemainingHours(user) {
-    if (!user?.uid) return;
-
-    try {
-        const studentDocRef = doc(db, "students", user.uid);
-        const studentDoc = await getDoc(studentDocRef);
-
-        if (!studentDoc.exists()) return;
-
-        const studentData = studentDoc.data();
-        const checkInOutData = studentData.checkInOutData || [];
-        const totalWorkedMinutes = calculateTotalWorkedHours(checkInOutData);
-
-        const initialRemainingMinutes = (studentData.remainingHours || 0) * 60;
-        const updatedRemainingMinutes = initialRemainingMinutes - totalWorkedMinutes;
-
-        const remainingHours = Math.floor(updatedRemainingMinutes / 60);
-        const remainingMins = updatedRemainingMinutes % 60;
-
-        const remainingHoursElement = document.getElementById('remaining-hours');
-        if (remainingHoursElement) {
-            remainingHoursElement.textContent = `Remaining Hours: ${remainingHours}hr ${remainingMins}m`;
-        }
-
-    } catch (error) {
-        console.error("Error updating remaining hours:", error);
-    }
-}
-
-// Trigger when user logs in
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        await updateRemainingHours(user);
-    }
-});
-
-
-// Call this function to update the remaining hours when the user logs in or after an action
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        await updateRemainingHours(user);
-    }
-});
-
-
-// Load Calendar Events
-async function loadCalendarEvents(user) {
-    if (!user?.uid) return;
-    try {
-        const studentDocRef = doc(db, "students", user.uid);
-        const studentDoc = await getDoc(studentDocRef);
-        if (!studentDoc.exists()) return;
-
-        const checkInOutData = studentDoc.data().checkInOutData || [];
-        const events = checkInOutData.flatMap((entry, index) => {
-            const date = entry.date;
-            const duration = entry.duration || 'N/A';  // Assuming 'duration' is stored in Firestore
-
-            const checkInEvent = entry.checkInTime ? {
-                id: `${index}-checkIn`,
-                title: `Check-In: ${entry.checkInTime}`,
-                start: `${date}T${convertTo24HourFormat(entry.checkInTime)}`,
-                color: '#4CAF50',
-                extendedProps: { index, type: 'checkIn' }
-            } : null;
-
-            const checkOutEvent = entry.checkOutTime ? {
-                id: `${index}-checkOut`,
-                title: `Check-Out: ${entry.checkOutTime} (Duration: ${duration})`,
-                start: `${date}T${convertTo24HourFormat(entry.checkOutTime)}`,
-                color: '#f44336',
-                extendedProps: { index, type: 'checkOut' }
-            } : null;
-
-            // Add countdown timer to check-in event (if available)
-            const today = getCurrentDate();
-            if (checkInEvent && !checkOutEvent && date === today) {
-                const countdownTime = `Time Elapsed: ${formatTimeElapsed(entry.checkInTime)}`;
-                checkInEvent.title = `${checkInEvent.title} (${countdownTime})`;
-            }
-            
-            return [checkInEvent, checkOutEvent].filter(e => e);
-        });
-
-        // Remove all events and add the new ones
-        calendar.removeAllEvents();
-        calendar.addEventSource(events);
-    } catch (error) {
-        console.error("Error loading calendar events:", error);
-    }
-}
-
-// Delete Event
-async function deleteEvent(user, eventId) {
-    if (!user?.uid) return console.error("No authenticated user found.");
-    try {
-        const studentDocRef = doc(db, "students", user.uid);
-        const studentDoc = await getDoc(studentDocRef);
-        if (!studentDoc.exists()) return;
-
-        let checkInOutData = studentDoc.data().checkInOutData || [];
-        const [index] = eventId.split('-');
-        checkInOutData.splice(index, 1);
-
-        await updateDoc(studentDocRef, { checkInOutData });
-        console.log(`Deleted entry at index ${index}`);
-    } catch (error) {
-        console.error("Error deleting event:", error);
-    }
-}
-
-// Reset data for today
-async function resetDataForCurrentDate(user) {
-    if (!user?.uid) return;
-    try {
-        const studentDocRef = doc(db, "students", user.uid);
-        const studentDoc = await getDoc(studentDocRef);
-        if (!studentDoc.exists()) return;
-
-        const checkInOutData = studentDoc.data().checkInOutData || [];
-        const updated = checkInOutData.filter(entry => entry.date !== getCurrentDate());
-
-        await updateDoc(studentDocRef, { checkInOutData: updated });
-        console.log("Reset today's data");
-    } catch (error) {
-        console.error("Error resetting data:", error);
-    }
-}
-
-function formatTimeElapsed(checkInTimeStr) {
-    if (!checkInTimeStr) return "0m";
-
-    const now = new Date();
-    const [time, modifier] = checkInTimeStr.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
-
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    if (modifier === 'AM' && hours === 12) hours = 0;
-
-    const checkInDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
-    const diffMs = now - checkInDate;
-
-    if (diffMs <= 0) return `0m`;
-
-    const hoursElapsed = Math.floor(diffMs / 3600000);
-    const minutesElapsed = Math.floor((diffMs % 3600000) / 60000);
-    return `${hoursElapsed > 0 ? `${hoursElapsed}hr ` : ''}${minutesElapsed}m`;
-}
-
-function calculateDuration(checkInTimeStr, checkOutTimeStr) {
-    // Convert AM/PM time to 24-hour format for both check-in and check-out times
-    const checkInTime24 = convertTo24HourFormat(checkInTimeStr);
-    const checkOutTime24 = convertTo24HourFormat(checkOutTimeStr);
-
-    const checkInDate = new Date(`1970-01-01T${checkInTime24}Z`);
-    const checkOutDate = new Date(`1970-01-01T${checkOutTime24}Z`);
-
-    // Calculate the difference in milliseconds
-    const diffMs = checkOutDate - checkInDate;
-
-    // Convert milliseconds to hours and minutes
-    const hours = Math.floor(diffMs / 3600000);
-    const minutes = Math.floor((diffMs % 3600000) / 60000);
-
-    return `${hours}hr ${minutes}m`;
-}
-
-
-
-// Calendar Initialization (with updates for timer)
-const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    events: [],
-    eventClick: async (info) => {
-        const user = auth.currentUser;
-        if (!user) return alert("You must be logged in.");
-        const confirmDelete = confirm("Delete all data for this day?");
-        if (confirmDelete) {
-            await deleteEvent(user, info.event.id);
-            await loadCalendarEvents(user);
-        }
-    }
-});
-calendar.render();
-
-// Auth and Initial Setup
-auth.onAuthStateChanged(async (user) => {
-    if (!user) return;
-
-    const studentDocRef = doc(db, "students", user.uid);
-    const studentDoc = await getDoc(studentDocRef);
-    const checkInOutData = studentDoc.exists() ? (studentDoc.data().checkInOutData || []) : [];
-    const todayEntry = checkInOutData.find(entry => entry.date === getCurrentDate());
-
-    if (todayEntry?.checkInTime && !todayEntry.checkOutTime) {
-        isCheckedIn = true;
-        checkInTime = todayEntry.checkInTime;
-        startTimeInput.value = checkInTime;
-        checkInButton.style.display = 'none';
-        checkOutButton.style.display = 'inline-block';
-        startCountdown(checkInTime); // ✅ Start countdown
-        } else if (todayEntry?.checkInTime && todayEntry?.checkOutTime) {
-        startTimeInput.value = todayEntry.checkInTime;
-        endTimeInput.value = todayEntry.checkOutTime;
-        checkInButton.style.display = 'none';
-        checkOutButton.style.display = 'none';
-    } else {
-        checkInButton.style.display = 'inline-block';
-        checkOutButton.style.display = 'none';
-    }
-
-    await loadCalendarEvents(user);
-});
-
-// Check-In with Validation
-checkInButton.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in to check in.");
-
-    const studentDocRef = doc(db, "students", user.uid);
-    const studentDoc = await getDoc(studentDocRef);
-    const checkInOutData = studentDoc.exists() ? (studentDoc.data().checkInOutData || []) : [];
-    const todayEntry = checkInOutData.find(entry => entry.date === getCurrentDate());
-
-    if (todayEntry?.checkInTime) {
-        alert("You have already checked in today.");
-        checkInButton.style.display = 'none';
-        checkOutButton.style.display = todayEntry?.checkOutTime ? 'none' : 'inline-block';
-        return;
-    }
-
-    const now = new Date();
-    const options = { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: true };
-    checkInTime = now.toLocaleTimeString('en-US', options);
-    startTimeInput.value = checkInTime;
-
-    await storeCheckInOutData(user, checkInTime, null);
-    isCheckedIn = true;
-
-    checkInButton.style.display = 'none';
-    checkOutButton.style.display = 'inline-block';
-    startCountdown(checkInTime); // ✅ Start countdown
-
-    console.log(`Checked in at: ${checkInTime}`);
-});
-
-checkOutButton.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in to check out.");
-
-    const now = new Date();
-    const options = { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: true };
-    checkOutTime = now.toLocaleTimeString('en-US', options);
-    endTimeInput.value = checkOutTime;
-
-    // Call storeCheckInOutData to save check-in/check-out times and calculate the duration
-    await storeCheckInOutData(user, checkInTime, checkOutTime);
-
-    isCheckedIn = false;
-
-    checkInButton.style.display = 'none';
-    checkOutButton.style.display = 'none';
-    stopCountdown(); // ✅ Stop countdown
-
-    alert("Check-out successful!");
-    await loadCalendarEvents(user);
-});
-
-
-// Reset Button
-const resetButton = document.createElement('button');
-resetButton.textContent = 'Reset';
-resetButton.id = 'reset-button';
-resetButton.style.marginTop = '10px';
-document.querySelector('.check-in-container')?.appendChild(resetButton);
-
-resetButton.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in.");
-
-    startTimeInput.value = '';
-    endTimeInput.value = '';
-    checkInTime = null;
-    checkOutTime = null;
-    isCheckedIn = false;
-
-    checkInButton.style.display = 'inline-block';
-    checkOutButton.style.display = 'none';
-    stopCountdown(); // ✅ stop timer on reset
-
-    await resetDataForCurrentDate(user);
-    await loadCalendarEvents(user);
-    await updateRemainingHours(user);
-});
-
-
-//END Check in and check ouut
-
 // Geolocation functionality
 const mapContainer = document.getElementById('map');
 let map = null; // Leaflet map instance
 let marker = null; // Leaflet marker instance
 let watchId = null; // ID for the geolocation watcher
 let isSatelliteView = false; // Track the current map view (default is standard)
+let companyGeofences = [];
 
 // Function to fetch the location name using reverse geocoding
 async function fetchLocationName(latitude, longitude) {
@@ -1009,10 +563,10 @@ if (logoutButton && window.location.pathname.includes('student-dashboard.html'))
 }
 
 // Function to load student profile
-async function loadStudentProfile(user) {
-    const userNameElement = document.getElementById('user-name');
-    const userEmailElement = document.getElementById('user-email');
+const userNameElement = document.getElementById('user-name');
+const userEmailElement = document.getElementById('user-email');
 
+async function loadStudentProfile(user) {
     try {
         const studentDocRef = doc(db, "students", user.uid);
         const studentDoc = await getDoc(studentDocRef);
@@ -1046,16 +600,6 @@ async function loadStudentProfile(user) {
     }
 }
 
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        loadStudentProfile(user); 
-    } else {
-        console.error("No authenticated user found.");
-        window.location.href = "student-login.html"; 
-    }
-});
-
 // Function to generate and display QR code for the student
 async function generateStudentQRCode(user) {
     try {
@@ -1067,12 +611,11 @@ async function generateStudentQRCode(user) {
             return;
         }
 
-const studentData = studentDoc.data();
-// Prepare the QR data as a formatted string with the requested name format
-const qrData = 
-    `Email: ${studentData.email || ""}\n` +
-    `Name: ${studentData.lastName || ""}, ${studentData.firstName || ""} ${studentData.middleName || ""}\n` +
-    `Student ID: ${studentData.studentID || ""}`;
+        const studentData = studentDoc.data();
+        // Prepare the QR data as a formatted string with the requested name format
+        const qrData =
+            `Email: ${studentData.email || ""}\n` +
+            `Name: ${studentData.lastName || ""}, ${studentData.firstName || ""} ${studentData.middleName || ""}\n`
 
         // Generate QR code
         const qr = new QRious({
@@ -1082,7 +625,27 @@ const qrData =
             background: 'white',
             foreground: 'black'
         });
-     } catch (error) {
+
+        // Add download button
+        let downloadBtn = document.getElementById('download-qr-btn');
+        if (!downloadBtn) {
+            downloadBtn = document.createElement('button');
+            downloadBtn.id = 'download-qr-btn';
+            downloadBtn.textContent = 'Download QR Code';
+            downloadBtn.style.marginTop = '12px';
+            downloadBtn.onclick = function () {
+                // Get the canvas and trigger download
+                const canvas = document.getElementById('student-qr-code');
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL("image/png");
+                link.download = 'student-qr-code.png';
+                link.click();
+            };
+            // Insert after the QR code
+            const qrSection = document.getElementById('student-qr-section');
+            qrSection.appendChild(downloadBtn);
+        }
+    } catch (error) {
         console.error("Error generating student QR code:", error);
     }
 }

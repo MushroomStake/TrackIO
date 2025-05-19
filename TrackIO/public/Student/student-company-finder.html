@@ -52,16 +52,14 @@
         </a>
     </nav>
 
+    <!-- Map Section -->
+    <h2 class="map-title">Company Locations</h2>
+    <div id="map"></div>
     <!-- Search Bar -->
     <div class="search-bar">
         <input type="text" id="search-input" placeholder="Search location or company...">
         <ul id="suggestions"></ul>
     </div>
-
-    <!-- Map Section -->
-    <h2 class="map-title">Company Locations</h2>
-    <div id="map"></div>
-
     <!-- Companies List -->
     <div id="companies-list" class="companies-list">
         <!-- Company cards will be dynamically inserted here -->
@@ -81,7 +79,6 @@
         <div class="modal-body">
             <p id="company-description"></p>
             <p><strong>Contact Email:</strong> <span id="company-email"></span></p>
-            <p><strong>Location:</strong> <span id="company-location"></span></p>
             <p><strong>Open for OJT:</strong> <span id="company-ojt-status"></span></p>
             <div class="business-proof-container">
                 <h3>Business Proof</h3>
@@ -90,7 +87,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button id="apply-button-modal">Apply</button>
+            <button id="apply-button-modal" style="display: none;">Apply</button>
+            <button id="goto-location-modal-btn">Go to Location</button>
         </div>
     </div>
 </div>

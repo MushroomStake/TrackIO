@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getFirestore, collection, query, where, doc, getDoc, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getFirestore, collection, query, where, doc, getDoc, getDocs, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
 const firebaseConfig = {
@@ -27,6 +27,9 @@ onAuthStateChanged(auth, (user) => {
 
 
 // --- Fetch and Display Companies ---
+const companiesList = document.getElementById("companies-list");
+let allCompanies = []; // [{company, cardElement, companyId}, ...]
+
 async function loadCompanies() {
 
     // Clear previous markers
@@ -42,24 +45,38 @@ async function loadCompanies() {
 
     try {
         const querySnapshot = await getDocs(q);
-        const companiesList = document.getElementById("companies-list");
         companiesList.innerHTML = ""; // clear previous entries
 
         let acceptedCompanyCard = null;
+        let acceptedCompanyId = null;
+        allCompanies = []; // reset
+
+        // First pass: check for accepted company
+        for (const docSnap of querySnapshot.docs) {
+            const companyId = docSnap.id;
+            if (studentData?.email) {
+                const applicationsCollection = collection(db, "companies", companyId, "applications");
+                const qApp = query(applicationsCollection, where("student_email", "==", studentData.email));
+                const res = await getDocs(qApp);
+                if (!res.empty && res.docs[0].data().status === "accepted") {
+                    acceptedCompanyId = companyId;
+                    break; // found, no need to check others
+                }
+            }
+        }
 
         for (const docSnap of querySnapshot.docs) {
             const company = docSnap.data();
             const companyEmail = company.email;
             const companyId = docSnap.id;
 
-            // Check if the student has applied
+            // Check if the student has applied (now in subcollection)
             let statusHTML = '';
-            let isAccepted = false; // <-- Initialize isAccepted
+            let isAccepted = false;
             if (studentData?.email) {
-                const applyDocRef = doc(db, "Apply", companyEmail);
-                const uploadsCollection = collection(applyDocRef, "uploads");
-                const q = query(uploadsCollection, where("student_email", "==", studentData.email));
-                const res = await getDocs(q);
+                const applicationsCollection = collection(db, "companies", companyId, "applications");
+                const qApp = query(applicationsCollection, where("student_email", "==", studentData.email));
+                const res = await getDocs(qApp);
 
                 if (!res.empty) {
                     const applicationStatus = res.docs[0].data().status;
@@ -69,32 +86,53 @@ async function loadCompanies() {
                     } else if (applicationStatus === "accepted") {
                         statusHTML = `<p class="application-status accepted">✅ <strong>Currently Working Here</strong></p>`;
                         isAccepted = true;
+                        acceptedCompanyId = companyId;
                     } else if (applicationStatus === "declined") {
                         statusHTML = `<p class="application-status declined">Status: <strong>Declined</strong></p>`;
                     }
                 }
-            }      
+            }
 
             const companyCard = document.createElement("div");
             companyCard.classList.add("company-card");
+
+            // Add remove icon if accepted
+            let removeIconHTML = "";
+            if (isAccepted) {
+                removeIconHTML = `
+                    <span class="remove-accepted-company" title="Remove this company" style="cursor:pointer;float:right;font-size:20px;color:#dc3545;margin-left:10px;">
+                        &#10006;
+                    </span>
+                `;
+            }
 
             companyCard.innerHTML = `
                 <div class="company-info">
                     <img src="../../uploads/${company.profile_photo}" alt="${company.name} Logo" class="company-logo">
                     <div class="company-details">
-                        <h3>${company.name}</h3>
+                        <h3>${company.name} ${removeIconHTML}</h3>
                         <p>${company.type}</p>
                         ${statusHTML}
+                        <p><strong>OJT Requirements:</strong> ${company.ojt_requirements ? company.ojt_requirements : "Not specified"}</p>
+                        <p><strong>OJT Capacity:</strong> ${company.ojt_capacity ? company.ojt_capacity : "Not specified"}</p>
                     </div>
                 </div>
                 <div class="company-actions">
-                    <button class="view-info-button" data-id="${companyId}">View Info</button>
-                    ${!isAccepted ? `<button class="apply-button" data-id="${companyId}" data-email="${companyEmail}">Apply</button>` : ""}
+                    <button class="view-info-button" data-id="${companyId}" data-email="${companyEmail}">View Info</button>
+                    <button class="goto-location-button" data-lat="${company.lat}" data-lng="${company.lng}">Go to Location</button>
+                    ${
+                        // Only show Apply button if the student is NOT accepted in any company
+                        (!acceptedCompanyId)
+                        ? `<button class="apply-button" data-id="${companyId}" data-email="${companyEmail}">Apply</button>`
+                        : ""
+                    }
                 </div>
             `;
 
+            allCompanies.push({ company, cardElement: companyCard, companyId, isAccepted });
+
             if (isAccepted) {
-                acceptedCompanyCard = companyCard; // store for prepending later
+                acceptedCompanyCard = companyCard;
             } else {
                 companiesList.appendChild(companyCard);
             }
@@ -117,7 +155,9 @@ async function loadCompanies() {
             } else {
                 console.warn(`Company "${company.name}" has no lat/lng set.`);
             }
-        }         // If student is working somewhere, show that card on top
+        }
+
+        // If student is working somewhere, show that card on top
         if (acceptedCompanyCard) {
             const acceptedHeader = document.createElement("h3");
             acceptedHeader.innerText = "You are currently working at this company:";
@@ -153,6 +193,8 @@ function closeModalWindow(modalElement) {
 // --- Show Company Info Modal ---
 function showCompanyDetails(companyId) {
     const companyRef = doc(db, "companies", companyId);
+    const companyDocRef = doc(db, "companies", companyId); // companyId is Firestore doc ID
+    const applicationsCollection = collection(companyDocRef, "applications");
 
     getDoc(companyRef)
         .then((docSnap) => {
@@ -174,7 +216,11 @@ function showCompanyDetails(companyId) {
                 if (companyTypeElement) companyTypeElement.innerText = company.type;
                 if (companyDescriptionElement) companyDescriptionElement.innerText = company.description;
                 if (companyEmailElement) companyEmailElement.innerText = company.email;
-                if (companyLocationElement) companyLocationElement.innerText = `${company.lat}, ${company.lng}`;
+                if (companyLocationElement) {
+                    companyLocationElement.innerText = company.location_name ? company.location_name : "Not specified";
+                    companyLocationElement.setAttribute("data-lat", company.lat);
+                    companyLocationElement.setAttribute("data-lng", company.lng);
+                }
                 if (companyOjtStatusElement) companyOjtStatusElement.innerText = company.open_for_ojt ? "Yes" : "No";
 
                 if (profileImage) {
@@ -211,8 +257,16 @@ function showCompanyDetails(companyId) {
 }
 
 // --- Event Listeners ---
-document.addEventListener("click", function (event) {
+document.addEventListener("click", async function (event) {
     const target = event.target;
+
+    if (target.classList.contains("goto-location-button")) {
+        const lat = parseFloat(target.getAttribute("data-lat"));
+        const lng = parseFloat(target.getAttribute("data-lng"));
+        if (!isNaN(lat) && !isNaN(lng)) {
+            map.setView([lat, lng], 15);
+        }
+    }
 
     if (target.classList.contains("view-info-button")) {
         const companyId = target.getAttribute("data-id");
@@ -222,6 +276,43 @@ document.addEventListener("click", function (event) {
     if (target.classList.contains("apply-button")) {
         selectedCompanyEmail = target.getAttribute("data-email");
         openModal(applyModal);
+    }
+
+    // Remove accepted company logic
+    if (target.classList.contains("remove-accepted-company")) {
+        const companyCard = target.closest(".company-card");
+        const companyName = companyCard.querySelector("h3").innerText.replace("✖", "").trim();
+        const companyId = allCompanies.find(c => c.cardElement === companyCard)?.companyId;
+
+        if (!companyId) return;
+
+        if (confirm(`Are you sure you want to remove "${companyName}" as your accepted company? This will set your status to "pending" again.`)) {
+            // Find the application doc for this student in this company
+            const applicationsCollection = collection(db, "companies", companyId, "applications");
+            const qApp = query(applicationsCollection, where("student_email", "==", studentData.email));
+            const res = await getDocs(qApp);
+
+            if (!res.empty) {
+                const appDocId = res.docs[0].id;
+                const appDocRef = doc(db, "companies", companyId, "applications", appDocId);
+                await updateDoc(appDocRef, { status: "pending" });
+                alert("You have been removed from the accepted company.");
+                loadCompanies();
+            }
+        }
+    }
+});
+
+// Modal button: Go to Location
+document.body.addEventListener("click", function(event) {
+    if (event.target && event.target.id === "goto-location-modal-btn") {
+        // Get lat/lng from the modal's currently loaded company
+        const lat = parseFloat(document.getElementById("company-location").getAttribute("data-lat"));
+        const lng = parseFloat(document.getElementById("company-location").getAttribute("data-lng"));
+        if (!isNaN(lat) && !isNaN(lng)) {
+            map.setView([lat, lng], 15);
+        }
+        closeModalWindow(modal);
     }
 });
 
@@ -244,7 +335,7 @@ document.getElementById("apply-button-modal").addEventListener("click", () => {
 });
 
 // --- Handle Apply Form Submit ---
-applyForm.addEventListener('submit', function (e) {
+applyForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const file = resumeInput.files[0];
@@ -258,50 +349,60 @@ applyForm.addEventListener('submit', function (e) {
         return;
     }
 
+    // Find the companyId (Firestore doc ID) from the selected company email
+    // You should have this from your card or modal logic
+    const companyId = document.querySelector('.view-info-button[data-email="' + selectedCompanyEmail + '"]')?.getAttribute('data-id');
+    if (!companyId) {
+        alert("Company ID not found.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append('resume', file);
     formData.append('company_email', selectedCompanyEmail);
     formData.append('student_email', studentData.email);
 
+    // Upload resume to PHP backend
     fetch('../../PHP/upload-resume.php', {
         method: 'POST',
         body: formData
     })
-    
     .then(response => response.json())
     .then(async data => {
-    if (data.status === 'success') {
-        alert(data.message);
-        closeModalWindow(applyModal);
-        applyForm.reset();
+        if (data.status === 'success') {
+            alert(data.message);
+            closeModalWindow(applyModal);
+            applyForm.reset();
 
-        const applyDocRef = doc(db, "Apply", data.company_email);
-        const uploadsCollection = collection(applyDocRef, "uploads");
+            // Store application in subcollection inside companies/{companyId}/applications
+            const companyDocRef = doc(db, "companies", companyId);
+            const applicationsCollection = collection(companyDocRef, "applications");
 
-        // Check for duplicate before adding
-        const q = query(uploadsCollection, where("student_email", "==", data.student_email));
-        const existing = await getDocs(q);
+            // Check for duplicate before adding
+            const q = query(applicationsCollection, where("student_email", "==", studentData.email));
+            const existing = await getDocs(q);
 
-        if (!existing.empty) {
-            alert("You already applied to this company.");
-            return;
+            if (!existing.empty) {
+                alert("You already applied to this company.");
+                return;
+            }
+
+            await addDoc(applicationsCollection, {
+                student_email: studentData.email,
+                lastName: studentData.lastName || "",
+                firstName: studentData.firstName || "",
+                middleName: studentData.middleName || "",
+                resume_filename: data.resume_filename,
+                status: "pending",
+                uploaded_at: serverTimestamp()
+            });
+
+            alert("Resume info saved in Firestore with pending status.");
+        } else {
+            alert("Upload failed: " + data.message);
         }
-
-        await addDoc(uploadsCollection, {
-            student_email: data.student_email,
-            resume_filename: data.resume_filename,
-            status: "pending",
-            uploaded_at: serverTimestamp()
-        });
-
-        alert("Resume info saved in Firestore with pending status.");
-    } else {
-        alert("Upload failed: " + data.message);
-    }
+    });
 });
-});
-
-
 
 // Modify the event listener for "Navigate" button
 // Initialize the map centered in the Philippines
@@ -330,65 +431,82 @@ function debounce(func, delay) {
 const searchInput = document.getElementById('search-input');
 const suggestionsList = document.getElementById('suggestions');
 
-// Handle search
-searchInput.addEventListener('input', debounce(async function(event) {
-    const searchText = event.target.value.trim().toLowerCase();
+// Highlight function
+function highlightMatch(text, query) {
+    if (!query) return text;
+    // Split query into words, remove empty, escape regex
+    const words = query
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (words.length === 0) return text;
+    // Build regex to match any word, case-insensitive
+    const regex = new RegExp(`(${words.join('|')})`, 'gi');
+    return text.replace(regex, match => `<strong style="background:yellow;">${match}</strong>`);
+}
 
-    // Clear suggestions
+// Search handler
+searchInput.addEventListener('input', function () {
+    const query = this.value.trim();
     suggestionsList.innerHTML = '';
-    suggestionsList.style.display = 'none';
-
-    if (searchText.length === 0) return;
-
-    let companyMatches = markers.filter(marker => marker.companyName.includes(searchText));
-
-    if (companyMatches.length > 0) {
-        // Show company suggestions
-        companyMatches.forEach(marker => {
-            const li = document.createElement('li');
-            li.textContent = marker.companyName;
-            li.style.padding = '8px';
-            li.style.cursor = 'pointer';
-            li.addEventListener('click', () => {
-                map.setView(marker.getLatLng(), 15);
-                marker.openPopup();
-                suggestionsList.innerHTML = '';
-                suggestionsList.style.display = 'none';
-                searchInput.value = '';
-            });
-            suggestionsList.appendChild(li);
-        });
-        suggestionsList.style.display = 'block';
-    } else {
-        // No company match, search location
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=ph&q=${encodeURIComponent(searchText)}`;
-
-        try {
-            const response = await fetch(url);
-            const results = await response.json();
-
-            if (results.length > 0) {
-                results.forEach(place => {
-                    const li = document.createElement('li');
-                    li.textContent = place.display_name;
-                    li.style.padding = '8px';
-                    li.style.cursor = 'pointer';
-                    li.addEventListener('click', () => {
-                        map.setView([place.lat, place.lon], 13);
-                        suggestionsList.innerHTML = '';
-                        suggestionsList.style.display = 'none';
-                        searchInput.value = '';
-                    });
-                    suggestionsList.appendChild(li);
-                });
-                suggestionsList.style.display = 'block';
+    if (!query) {
+        // Show all cards if search is empty
+        allCompanies.forEach(({ company, cardElement }) => {
+            cardElement.style.display = '';
+            // Reset OJT requirements highlight
+            const detailsDiv = cardElement.querySelector('.company-details');
+            if (detailsDiv && company.ojt_requirements) {
+                detailsDiv.innerHTML = detailsDiv.innerHTML.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '$1');
             }
-        } catch (error) {
-            console.error('Error searching location:', error);
-        }
+        });
+        return;
     }
-}, 500)); // 500ms debounce
 
+    // Filter companies by name, type, or ojt_requirements
+    const matches = allCompanies.filter(({ company }) => {
+        const q = query.toLowerCase();
+        return (
+            (company.name && company.name.toLowerCase().includes(q)) ||
+            (company.type && company.type.toLowerCase().includes(q)) ||
+            (company.ojt_requirements && company.ojt_requirements.toLowerCase().includes(q))
+        );
+    });
+
+    // Hide all cards first
+    allCompanies.forEach(({ cardElement }) => cardElement.style.display = 'none');
+
+    // Show only matched cards and build suggestions
+    matches.forEach(({ company, cardElement }) => {
+        cardElement.style.display = '';
+        // Highlight in card OJT requirements
+        if (company.ojt_requirements) {
+            const detailsDiv = cardElement.querySelector('.company-details');
+            if (detailsDiv) {
+                detailsDiv.innerHTML = detailsDiv.innerHTML.replace(
+                    company.ojt_requirements,
+                    highlightMatch(company.ojt_requirements, query)
+                );
+            }
+        }
+        // Add to suggestions
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${highlightMatch(company.name, query)}</span>
+            <span style="color:#888;"> - ${highlightMatch(company.ojt_requirements || '', query)}</span>
+        `;
+        li.style.cursor = 'pointer';
+        li.onclick = () => {
+            searchInput.value = company.name;
+            suggestionsList.innerHTML = '';
+            // Only show this card
+            allCompanies.forEach(({ cardElement: el }) => el.style.display = 'none');
+            cardElement.style.display = '';
+            // Optionally scroll to the card
+            cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+        suggestionsList.appendChild(li);
+    });
+});
 
 let studentData = {};
 
@@ -444,7 +562,7 @@ const companyModalHTML = `
             </div>
         </div>
         <div class="modal-footer">
-            <button id="apply-button-modal">Apply</button>
+            <button id="goto-location-modal-btn">Go to Location</button>
         </div>
     </div>
 </div>
