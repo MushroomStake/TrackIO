@@ -9,10 +9,21 @@ const previewImage = document.getElementById("previewImage");
 const confirmBtn = document.getElementById("confirmBtn");
 const retakeBtn = document.getElementById("retakeBtn");
 
-const CLIENT_ID = "80160515542-jhqpn34470pcuce5r6ohnvr74d06tcmv.apps.googleusercontent.com";
-const CLIENT_SECRET = "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";
-const REFRESH_TOKEN = "1//04jvfjJZ6AIh-CgYIARAAGAQSNwF-L9IriVWyx0ebQZSDTW5ZyEgCx8_g7XM5bVTnR2n6R2FfY_TB6JLxEHgix_LhpaEONXw95Gw";
-const ROOT_FOLDER_ID = "12_98ZSmVlmrqfGjSm8XpDSpIcUuChUat";
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC9z8Amm-vlNcbw-XqEnrkt_WpWHaGfwtQ",
+  authDomain: "trackio-f5b07.firebaseapp.com",
+  projectId: "trackio-f5b07",
+  storageBucket: "trackio-f5b07.appspot.com",
+  messagingSenderId: "1083789426923",
+  appId: "1:1083789426923:web:c372749a28e84ff9cd7eae",
+  measurementId: "G-DSPVFG2CYW"
+};
+
+// Init Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const studentInfo = JSON.parse(sessionStorage.getItem("studentName"));
 const studentID = new URLSearchParams(window.location.search).get("studentID");

@@ -52,6 +52,7 @@
 
     <!-- Main Section -->
     <div class="main-content">
+
         <!-- Check-In Section -->
         <div class="check-in-container">
             <h2>Check-In/Out</h2>
@@ -68,6 +69,14 @@
                 <button id="check-out-btn">Check Out</button>
             </div>
         </div>
+
+        <!-- Add this inside .main-content or wherever you want the QR code -->
+<div id="student-qr-section" style="text-align:center; margin: 24px 0;">
+    <h2>Your QR Code</h2>
+    <canvas id="student-qr-code"></canvas>
+    <p id="qr-info" style="margin-top: 8px; color: #555;"></p>
+</div>
+
 
         <!-- Calendar Section -->
         <div id="calendar-container">
@@ -88,6 +97,7 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script type="module" src="student-script.js"></script> <!-- Link to external JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 </body>
 

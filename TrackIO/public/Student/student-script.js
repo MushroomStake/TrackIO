@@ -1055,3 +1055,44 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "student-login.html"; 
     }
 });
+
+// Function to generate and display QR code for the student
+async function generateStudentQRCode(user) {
+    try {
+        const studentDocRef = doc(db, "students", user.uid);
+        const studentDoc = await getDoc(studentDocRef);
+
+        if (!studentDoc.exists()) {
+            document.getElementById('student-qr-code').innerHTML = "<span style='color:red;'>Student data not found.</span>";
+            return;
+        }
+
+const studentData = studentDoc.data();
+// Prepare the QR data as a formatted string with the requested name format
+const qrData = 
+    `Email: ${studentData.email || ""}\n` +
+    `Name: ${studentData.lastName || ""}, ${studentData.firstName || ""} ${studentData.middleName || ""}\n` +
+    `Student ID: ${studentData.studentID || ""}`;
+
+        // Generate QR code
+        const qr = new QRious({
+            element: document.getElementById('student-qr-code'),
+            value: qrData,
+            size: 200,
+            background: 'white',
+            foreground: 'black'
+        });
+     } catch (error) {
+        console.error("Error generating student QR code:", error);
+    }
+}
+
+// Call QR code generation after profile is loaded
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        loadStudentProfile(user);
+        generateStudentQRCode(user);
+    } else {
+        window.location.href = "student-login.html";
+    }
+});

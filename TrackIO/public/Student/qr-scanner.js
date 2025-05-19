@@ -4,6 +4,22 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { app, db, logoutUser } from './firebase-auth.js';
 
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC9z8Amm-vlNcbw-XqEnrkt_WpWHaGfwtQ",
+  authDomain: "trackio-f5b07.firebaseapp.com",
+  projectId: "trackio-f5b07",
+  storageBucket: "trackio-f5b07.appspot.com",
+  messagingSenderId: "1083789426923",
+  appId: "1:1083789426923:web:c372749a28e84ff9cd7eae",
+  measurementId: "G-DSPVFG2CYW"
+};
+
+// Init Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 const userSession = JSON.parse(sessionStorage.getItem("user"));
 if (!userSession) window.location.href = "login.html";
 

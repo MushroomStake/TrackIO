@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Attendance</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="company-dashboard.css">
+</head>
+<body>
+   
+    <!-- Header -->
+    <header class="main-header">
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            
+            <a href="company-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+            <button id="logout-button" class="logout-button" aria-label="Logout">Logout</button>
+        </nav>
+    </header>
+
+    <!-- Notification Pop-Up -->
+    <div class="notification-popup hidden" id="notification-popup"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="company-dashboard.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Applicants</span>
+        </a>
+
+        <a href="company-evaluation.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Evaluate Student</span>
+        </a>
+
+        <a href="company-capture.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Student Attendance</span>
+        </a>
+            
+    </nav>
+
+    <!-- Camera QR Scanner Section -->
+<div id="qr-scanner-section" style="text-align:center; margin: 32px 0;">
+    <h2>Scan Student QR Code</h2>
+    <video id="qr-video" width="320" height="240" style="border:1px solid #ccc;"></video>
+    <div id="scan-result" style="margin-top: 16px; font-weight: bold;"></div>
+    <button id="start-scan-btn">Start Scanning</button>
+    <button id="stop-scan-btn" style="display:none;">Stop Scanning</button>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script type="module" src="company-capture.js"></script>
+<script src="navbar.js"></script>
+
+</body>
+</html>
