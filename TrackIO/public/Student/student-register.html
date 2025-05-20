@@ -5,16 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Register</title>
   <link rel="stylesheet" href="../styles.css" />
+
 </head>
 <body>
        <div class="logo">
-        <img src="../img/logo2.png" alt="Profile Icon">
-        </div>
+  <div class="logo-container">
+    <img src="../img/logo1.png" alt="TrackIO Logo" class="main-logo">
+    <img src="../img/gc-ccs.png" alt="GC-CCS Icon" class="secondary-logo">
+  </div>
+</div>
   <div class="form-container" id="form-container">
     <div id="register-form-container">
       <h2>Student Register</h2>
       <form id="completeProfileForm">
-        <input type="email" id="rEmail" placeholder="Email" required />
+        <div class="email-input-container">
+          <input type="text" id="rStudentNumber" placeholder="Student Number" required/>
+          <span class="domain-suffix">@gordoncollege.edu.ph</span>
+        </div>
+        <div id="emailError" class="error-message"></div>
         <input type="text" id="rFirstName" placeholder="First Name" required />
         <input type="text" id="rLastName" placeholder="Last Name" required />
         <input type="password" id="rPassword" placeholder="Password" required />
@@ -30,23 +38,44 @@
 
   <script>
     const form = document.getElementById("completeProfileForm");
-    const emailInput = document.getElementById("rEmail");
+    const studentNumberInput = document.getElementById("rStudentNumber");
     const firstNameInput = document.getElementById("rFirstName");
     const lastNameInput = document.getElementById("rLastName");
     const passwordInput = document.getElementById("rPassword");
     const confirmPasswordInput = document.getElementById("rConfirmPassword");
     const messageDiv = document.getElementById("registerMessage");
+    const emailErrorDiv = document.getElementById("emailError");
+
+    // Create a hidden input for the full email
+    const hiddenEmailInput = document.createElement("input");
+    hiddenEmailInput.type = "hidden";
+    hiddenEmailInput.id = "rEmail";
+    form.appendChild(hiddenEmailInput);
+
+    studentNumberInput.addEventListener("input", function() {
+      // Validate student number (only numbers)
+      if (!/^\d*$/.test(this.value)) {
+        emailErrorDiv.textContent = "Student number should contain only numbers";
+        this.value = this.value.replace(/\D/g, '');
+      } else {
+        emailErrorDiv.textContent = "";
+      }
+    });
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const email = emailInput.value.trim();
+      const studentNumber = studentNumberInput.value.trim();
+      const email = studentNumber + "@gordoncollege.edu.ph";
       const firstName = firstNameInput.value.trim();
       const lastName = lastNameInput.value.trim();
       const password = passwordInput.value;
       const confirmPassword = confirmPasswordInput.value;
 
-      if (!email || !firstName || !lastName || !password || !confirmPassword) {
+      // Set the hidden email input value
+      hiddenEmailInput.value = email;
+
+      if (!studentNumber || !firstName || !lastName || !password || !confirmPassword) {
         messageDiv.textContent = "Please fill in all fields.";
         return;
       }
@@ -56,12 +85,17 @@
         return;
       }
 
+      // Validate student number
+      if (!/^\d+$/.test(studentNumber)) {
+        emailErrorDiv.textContent = "Student number should contain only numbers.";
+        return;
+      }
+
       // Save details to localStorage
       localStorage.setItem("pendingVerificationEmail", email);
       localStorage.setItem("tempFirstName", firstName);
       localStorage.setItem("tempLastName", lastName);
       localStorage.setItem("tempPassword", password);
-
 
       // Go to verification
       window.location.href = "verification.html";

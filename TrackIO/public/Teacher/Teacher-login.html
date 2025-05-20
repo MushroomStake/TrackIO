@@ -12,50 +12,77 @@
 
 </head>
 <body>
+     <!-- Aaccount filter Dropdown -->
+         <div class="dropdown">
+            <span>Account Filter</span>
+                <div class="dropdown-content">
+                   
+                            <a href="../Student/student-login.html" aria-label="Student Login">
+                                    <img src="../img/student-icon.png" alt="Student Logo" class="logo-icon">
+                                    <span>Student</span>
+                            </a>
+                             <a href="../Company/company-index.html" aria-label="Company Login">
+                                 <img src="../img/company-icon.png" alt="Company Logo" class="logo-icon">
+                                <span>Company</span>
+                            </a>
+                                <a href="../Teacher/Teacher-login.html" aria-label="Faculty Login">
+                                    <img src="../img/faculty-icon.png" alt="Faculty Logo" class="logo-icon">
+                                     <span>Faculty</span>
+                                </a>      
+                </div>
+            </div>
+            
      <div class="logo">
-        <img src="../img/logo2.png" alt="Profile Icon">
-        </div>    
+  <div class="logo-container">
+    <img src="../img/logo1.png" alt="TrackIO Logo" class="main-logo">
+    <img src="../img/gc-ccs.png" alt="GC-CCS Icon" class="secondary-logo">
+  </div>
+</div> 
         <div class="form-container" id="form-container">
         <!-- Login Form -->
         <div id="login-form-container">
             <h2>Faculty Login</h2>
             <form id="loginForm">
-                <input type="email" id="lEmail" placeholder="Email" required />
+                <div class="email-input-container">
+                    <input type="text" id="lUsername" placeholder="Email" required />
+                    <span class="domain-suffix">@gordoncollege.edu.ph</span>
+                </div>
+                <div id="loginUsernameError" class="error-message"></div>
+                <!-- Hidden email field for Firebase auth -->
+                <input type="hidden" id="lEmail" />
+                
                 <input type="password" id="lPassword" placeholder="Password" required />
-                <button id="submitLogin">Login</button>
+                <button type="submit" id="submitLogin">Login</button>
                 <div id="loginMessage" style="display: none;"></div>
+                <p>Don't have an account?</p>
+                <a href="Teacher-register.html" id="show-login">Register</a>
             </form>
 
             </div>
-                      <div class="logo-links">
-        <a href="../Student/student-login.html" aria-label="Student Login">
-            <img src="../img/student-icon.png" alt="Student Logo" class="logo-icon">
-        </a>
-        <a href="../Company/company-index.html" aria-label="Company Login">
-            <img src="../img/company-icon.png" alt="Company Logo" class="logo-icon">
-        </a>
-        <a href="Teacher-login.html" aria-label="Faculty Login">
-            <img src="../img/faculty-icon.png" alt="Faculty Logo" class="logo-icon">
-        </a>
-    </div>
+          
         </div>
     </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const usernameInput = document.getElementById('lUsername');
+            const username = usernameInput.value.trim();
             const emailInput = document.getElementById('lEmail');
-            const email = emailInput.value;
             const loginMessage = document.getElementById('loginMessage');
+            const loginUsernameError = document.getElementById('loginUsernameError');
 
-            // Basic email validation
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)) {
-                event.preventDefault(); // Prevent form submission
-                loginMessage.style.display = 'block';
-                loginMessage.style.color = 'red';
-                loginMessage.textContent = 'Please enter a valid email address.';
-            } else {
-                loginMessage.style.display = 'none';
+            // Basic username validation
+            if (!username) {
+                loginUsernameError.textContent = "Please enter your username.";
+                return;
             }
+
+            // Set the hidden email field with the full email address
+            emailInput.value = username + '@gordoncollege.edu.ph';
+            
+            // The click event on submitLogin will handle the actual login
+            document.getElementById('submitLogin').click();
         });
     </script>
 </body>

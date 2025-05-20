@@ -28,7 +28,7 @@
     top: 0;
     left: 0;
     height: 100%;
-    width: 220px; /* Adjusted width for better spacing */
+    width: 250px; /* Adjusted width for better spacing */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
