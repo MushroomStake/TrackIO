@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+    <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="student-profile.css"> <!-- Link to external CSS -->
+</head>
+<body>
+    <header class="main-header">
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            <a href="#notifications"  aria-label="Notifications" id="notification-icon">
+            </a>
+            <a href="student-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+        </nav>
+    </header>
+
+
+  
+  <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="student-dashboard.html" class="nav-item" aria-label="Student Dashboard">
+            <img src="../img/home.png" alt="Student Dashboard Icon">
+            <span>Student Dashboard</span>
+        </a>
+        <a href="student-company-finder.html" class="nav-item" aria-label="Company Finder">
+            <img src="../img/Company-Finder.png" alt="Company Finder Icon">
+            <span>Company Finder</span>
+        </a>
+        <a href="work-details.html" class="nav-item">
+            <img src="../img/add-hours-icon.png" alt="Add Icon">
+            <span>Add Hours</span>
+        </a>
+        <a href="student-evaluation.html" class="nav-item" aria-label="evaluation">
+            <img src="../img/Work-Details.png" alt="Work Details Icon">
+            <span>Evaluation</span>
+        </a>
+        <a href="student-documentation.html" class="nav-item" aria-label="Documentation">
+            <img src="../img/Documentation.png" alt="Documentation Icon">
+            <span>Daily Diary</span>
+        </a>
+      
+    </nav>
+
+    <div class="profile-container">
+        <h1>Student Profile</h1>
+
+        <!-- Profile Photo and Email -->
+        <div class="profile-header">
+            <div class="profile-photo-container">
+                <img id="profile-photo" src="../img/sample-profile.jpg" alt="Profile Photo" />
+                <input type="file" id="photo-upload" accept="image/*" />
+            </div>
+            <p><strong>Email:</strong> <span id="profile-email">Loading...</span></p>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="profile-info">
+            <div class="profile-column">
+                <p><strong>First Name:</strong>
+                    <input type="text" id="profile-first-name" placeholder="Enter first name" />
+                </p>
+                <p><strong>Middle Name:</strong>
+                    <input type="text" id="profile-middle-name" placeholder="Enter middle name" />
+                </p>
+                <p><strong>Contact Number:</strong>
+                    <input type="text" id="profile-contact-number" placeholder="Enter contact number" />
+                </p>
+                <p><strong>College School Name:</strong>
+                    <input type="text" id="profile-college-school-name" value="Gordon College Olongapo" readonly />
+                </p>
+                <p><strong>Sex:</strong>
+                    <select id="profile-sex">
+                        <option value="">-- Select --</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Non-Binary">Non-Binary</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </p>
+            </div>
+            <div class="profile-column">
+                <p><strong>Last Name:</strong>
+                    <input type="text" id="profile-last-name" placeholder="Enter last name" />
+                </p>
+                <p><strong>Date of Birth:</strong>
+                    <input type="date" id="profile-date-of-birth" />
+                </p>
+                <p><strong>Age:</strong>
+                    <input type="number" id="profile-age" placeholder="Enter age" />
+                </p>
+                <p><strong>Course:</strong>
+                    <input type="text" id="profile-college-course" value="CCS" readonly />
+                </p>
+                <p><strong>Program:</strong>
+                    <select id="profile-program">
+                        <option value="">-- Select Program --</option>
+                        <option value="BSIT">BSIT</option>
+                        <option value="BSCS">BSCS</option>
+                        <option value="BSEMC">BSEMC</option>
+                    </select>
+                </p>
+            </div>
+        </div>
+
+        <!-- Year Level and Block -->
+        <div class="profile-info">
+            <div class="profile-column">
+                <p><strong>Year Level:</strong>
+                    <select id="profile-year-level">
+                        <option value="">-- Select Year Level --</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </p>
+            </div>
+            <div class="profile-column">
+                <p><strong>Block:</strong>
+                    <select id="profile-block">
+                        <option value="">-- Select Block --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                    </select>
+                </p>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <button id="save-profile-button">Save</button>
+    </div>
+
+    <!-- Link to the student-profile.js script -->
+    <script type="module" src="student-profile.js"></script>
+    <script type="module" src="navbar.js"></script> <!-- Link to external JavaScript -->
+</body>
+</html>

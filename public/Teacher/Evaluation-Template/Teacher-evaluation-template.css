@@ -1,0 +1,194 @@
+
+/* General Styling */
+body {
+    background: #f4f6f8;
+    padding: 2rem;
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Evaluation Form */
+.evaluation-form {
+    background: white;
+    padding: 2rem;
+    max-width: 900px;
+    margin: auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    margin-left: 250px;
+}
+
+/* Headings */
+h2, h3 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+/* Info Table */
+.info-table {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 12px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    word-wrap: break-word;
+}
+
+/* Criteria Table */
+.criteria-table {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-collapse: collapse;
+    table-layout: fixed; /* Prevents table from overflowing */
+}
+
+.criteria-table th, .criteria-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ccc;
+    word-wrap: break-word; /* Prevents text overflow */
+}
+
+.criteria-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+/* Rating Description */
+.rating-description {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    padding: 1rem 2rem;
+    margin: 1.5rem auto;
+    border-radius: 8px;
+    color: #333;
+    font-size: 0.95rem;
+    max-width: 700px;
+}
+
+.rating-description p {
+    margin: 0 0 0.75rem;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.rating-columns {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Comments Section */
+.comments textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    border-radius: 5px;
+}
+
+/* Signature Section */
+.signature-section {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.signature-box {
+    width: 45%;
+    text-align: center;
+}
+
+.signature-line {
+    border-top: 1px solid #333;
+    margin-top: 2.5rem;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Add Criteria Section */
+.add-criteria {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.add-criteria input {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Buttons */
+.add-button {
+    padding: 0.5rem 1rem;
+    margin: 0.5rem;
+    cursor: pointer;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #34495e;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+
+    .evaluation-form {
+        padding: 1.5rem;
+        max-width: 100%; /* Full width for smaller screens */
+        margin-left: 0;
+    }
+
+    .info-table td, .criteria-table th, .criteria-table td {
+        padding: 8px;
+        font-size: 0.9rem; /* Reduce font size for smaller screens */
+    }
+
+    .rating-description {
+        padding: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .rating-columns {
+        flex-direction: column; /* Stack columns vertically */
+        gap: 1rem;
+    }
+
+    .signature-box {
+        width: 100%; /* Full width for smaller screens */
+    }
+
+    .add-criteria {
+        flex-direction: column; /* Stack input and button vertically */
+        gap: 0.5rem;
+    }
+
+    .add-button {
+        width: 100%; /* Full width buttons for smaller screens */
+    }
+}
+

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="student-style.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header class="main-header">
+                <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            <a href="#notifications" class="icon-link" aria-label="Notifications" id="notification-icon">
+                </a>
+            <a href="student-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+            <button id="logout-button" class="logout-button" aria-label="Logout">Logout</button>
+        </nav>
+    </header>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+         <span id="user-name"></span>
+         <span id="user-email"></span>
+        <a href="student-dashboard.html" class="nav-item">
+            <img src="../img/home.png" alt="Dashboard Icon">
+            <span>Dashboard</span>
+        </a>
+        <a href="student-company-finder.html" class="nav-item">
+            <img src="../img/Company-Finder.png" alt="Company Finder Icon">
+            <span>Company Finder</span>
+        </a>
+        <a href="work-details.html" class="nav-item">
+            <img src="../img/add-hours-icon.png" alt="Add Icon">
+            <span>Add Hours</span>
+        </a>
+        <a href="student-evaluation.html" class="nav-item">
+            <img src="../img/evaluation-icon.png" alt="Evaluation Icon">
+            <span>Evaluation</span>
+        </a>
+        <a href="student-documentation.html" class="nav-item">
+            <img src="../img/Documentation.png" alt="Documentation Icon">
+            <span>Daily Diary</span>
+        </a>
+    </nav>
+ 
+    <!-- Main Section -->
+    <div class="main-content">
+
+        <!-- Add this inside .main-content or wherever you want the QR code -->
+<div id="student-qr-section" style="text-align:center; margin: 24px 0;">
+    <h2>Your QR Code</h2>
+    <canvas id="student-qr-code"></canvas>
+    <p id="qr-info" style="margin-top: 8px; color: #555;"></p>
+</div>
+
+
+        <!-- Calendar Section -->
+        <div id="calendar-container">
+            <h2>Calendar</h2>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Geolocation Section -->
+        <div class="geolocation-container">
+            <h2>Your Current Location</h2>
+            <p id="location">Fetching location...</p>
+            <div id="map" style="width: 100%; height: 300px; border: 1px solid #ddd;"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script type="module" src="student-script.js"></script> <!-- Link to external JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+</body>
+
+</html>

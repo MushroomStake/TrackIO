@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Company Dashboard</title>
+  <link rel="stylesheet" href="company-dashboard.css" />
+  <link rel="stylesheet" href="navbar.css" />
+  
+</head>
+<body>
+   
+    <!-- Header -->
+    <header class="main-header">
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            
+            <a href="company-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+            
+        </nav>
+    </header>
+
+    <!-- Notification Pop-Up -->
+    <div class="notification-popup hidden" id="notification-popup"></div>
+
+ <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="company-dashboard.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="company-applicant.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Applicants</span>
+        </a>
+
+        <a href="company-evaluation.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Evaluate Student</span>
+        </a>
+        
+        <a href="company-capture.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Student Attendance</span>
+        </a>
+    </nav>
+
+  <script type="module" src="navbar.js"></script> <!-- Link to external JavaScript -->
+  <script type="module" src="company-dashboard.js"></script> <!-- Link to external JavaScript -->
+</body>
+</html>

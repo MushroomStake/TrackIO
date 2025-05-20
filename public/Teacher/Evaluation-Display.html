@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation List</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="Evaluation-Display.css">
+</head>
+<body>
+
+    <!-- Header -->
+   
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+        </nav>
+   
+
+    <!-- Notification Pop-Up -->
+    <div class="notification-popup hidden" id="notification-popup"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="Teacher-dashboard.html" class="nav-item" aria-label="Dashboard">
+            <img src="../img/home.png" alt="home Icon">
+            <span>Dashboard</span>
+        </a>
+        <a href="Evaluation-Template/Teacher-evaluation-template.html" class="nav-item" aria-label="Evaluate Student">
+            <img src="../img/evaluation-custom.png" alt="Evaluation">
+            <span>Custom Evaluation</span>
+        </a>
+        <a href="Evaluation-Display.html" class="nav-item" aria-label="Documentation">
+            <img src="../img/evaluation-icon.png" alt="Documentation Icon">
+            <span>Evaluation List</span>
+        </a>
+        <a href="Teacher-monitor-location.html" class="nav-item" aria-label="Documentation">
+            <img src="../img/monitor-student.png" alt="Documentation Icon">
+            <span>Monitor Student</span>
+        </a>
+    </nav>
+
+    <!-- Evaluation List Section -->
+<section class="evaluation-list">
+    <h2>Evaluation List</h2>
+    <p id="evaluation-instruction">Select an evaluation to view</p>
+    
+    <div class="evaluation-card" id="evaluation-card-template" style="display:none;">
+        <!-- Template content for evaluation card -->
+        <div class="evaluation-card-header">
+            <h3 class="evaluation-name">Trainee Name</h3>
+            <span class="evaluation-id">ID: <span class="student-id">12345</span></span>
+        </div>
+        <div class="evaluation-card-body">
+            <p><strong>Course:</strong> <span class="course">Course Name</span></p>
+            <p><strong>Job Assignment:</strong> <span class="job-assignment">Job Details</span></p>
+            <p><strong>Training Hours:</strong> <span class="training-hours">80 Hours</span></p>
+            <p><strong>Company:</strong> <span class="company-name">Company Name</span></p>
+        </div>
+        <button class="view-details-btn">View Details</button>
+    </div>
+
+    <div id="evaluation-cards-container"></div>
+</section>
+
+<!-- Popup for detailed evaluation -->
+<div id="popup-container" class="popup-container" style="display:none;">
+    <div id="popup-content" class="popup-content">
+        <!-- Detailed content will be populated dynamically here -->
+    </div>
+</div>
+
+
+    <script type="module" src="Evaluation-Display.js"></script>
+    <script type="module" src="navbar.js"></script>
+</body>
+</html>

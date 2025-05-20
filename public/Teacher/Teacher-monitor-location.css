@@ -1,0 +1,181 @@
+/* General Styling */
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  color: #007bff;
+  margin: 20px 0;
+}
+
+/* Main Layout */
+main {
+  font-family: Arial, sans-serif;
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  width: 100%;
+  overflow: hidden; /* Prevent unnecessary scrolling */
+}
+
+/* Map Styling */
+#map {
+  height: 70vh;
+  width: 100%;
+  max-width: 800px;
+  margin: 40px auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  z-index: 0;
+}
+
+/* Search Bar Styling */
+#search-bar {
+  padding: 12px;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#search-bar:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+#search-bar-container {
+  position: relative; /* Ensure the search bar and suggestions are positioned together */
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+/* Suggestions Pop-Up Container */
+.suggestions-container {
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  background: #fff;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  position: absolute; /* Position it relative to the search bar */
+  top: 100%; /* Place it directly below the search bar */
+  left: 0;
+  z-index: 1000;
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestion-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Company Cards Container */
+.company-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+/* Company Card Styling */
+.company-card {
+  width: 250px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
+}
+
+.company-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.company-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.company-card .card-body {
+  padding: 16px;
+  text-align: center;
+}
+
+.company-card .card-title {
+  font-size: 18px;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.company-card button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.company-card button:hover {
+  background-color: #0056b3;
+}
+
+.company-card button:active {
+  background-color: #003f7d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  main{
+    margin: 100px auto;
+  }
+  #map {
+    height: 50vh;
+  }
+
+  #search-bar {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  .company-card {
+    width: 90%;
+  }
+
+  .company-cards-container {
+    padding: 10px;
+  }
+}

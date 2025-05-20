@@ -1,0 +1,263 @@
+body {
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f8fc;
+      color: #0d2c54;
+      font-size: 14px;
+      margin-left: 300px;
+    }
+
+    header.main-header {
+      background-color: #0d2c54;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    .main-header .icon-link img,
+    .main-header .logout-button {
+      height: 30px;
+      cursor: pointer;
+      margin-left: 15px;
+    }
+
+    .logout-button {
+      background-color: #ff4e4e;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .main-container {
+      max-width: 1100px;
+      margin: 100px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 25px 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .dashboard-container {
+      margin-top: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 22px;
+      color: #0d2c54;
+    }
+
+    .back-icon {
+      height: 30px;
+      width: 30px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .container {
+      margin-bottom: 20px;
+      background-color: #ffffff;
+      border: 2px solid #d2e3fc;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      font-size: 14px;
+    }
+
+    .container h2,
+    .container h3,
+    .container h4 {
+      margin: 0;
+      cursor: pointer;
+      padding: 10px;
+      background-color: #0d2c54;
+      color: white;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .sub-container {
+      margin-left: 20px;
+      display: none;
+    }
+
+#programs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  padding: 1rem;
+}
+
+.nav-card,
+.student-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  width: 220px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-card:hover,
+.student-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.student-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+    .student-profile img {
+  width: 100px;  /* Adjust the size as needed */
+  height: 100px;  /* Adjust the size as needed */
+  border-radius: 50%;  /* Makes the image circular */
+  object-fit: cover;  /* Ensures the image maintains its aspect ratio */
+  border: 2px solid #ddd;  /* Optional: adds a border around the image */
+}
+
+.student-card span {
+  display: block;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.back-button {
+  margin: 1rem 0;
+  cursor: pointer;
+  color: #007bff;
+  font-weight: 500;
+}
+
+/* Burger button styling */
+.burger-button {
+    display: none; /* Hide by default */
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    font-size: 24px;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 900; /* Place it behind the navbar */
+    border-radius: 4px;
+}
+
+/* Calendar and Reports Containers */
+.student-calendar,
+.student-reports {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f4f8fc; /* Light blue background for better contrast */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d2e3fc; /* Add a border for better separation */
+}
+
+.student-calendar h4,
+.student-reports h4 {
+  font-size: 1.5rem;
+  color: #ffff;
+  margin-bottom: 15px;
+  text-align: center; /* Center-align the section titles */
+}
+
+/* Event and Report Cards */
+.event-card,
+.report-card {
+  background-color: #ffffff; /* White background for cards */
+  border: 1px solid #d2e3fc; /* Add a border for better separation */
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-card:hover,
+.report-card:hover {
+  transform: translateY(-3px); /* Add a hover effect */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.event-card p,
+.report-card p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* No Events or Reports */
+.no-events-container,
+.no-reports-container {
+  text-align: center;
+  font-size: 1rem;
+  color: #888;
+  margin-top: 10px;
+}
+
+/* Responsive styling for mobile and tablet */
+@media (max-width: 768px) {
+    body {
+        margin-left: 0; /* Remove left margin for mobile */
+    }
+    .burger-button {
+        display: block; /* Show the burger button */
+    }
+
+    .navbar {
+        transform: translateX(-100%); /* Hide the navbar by default */
+    }
+
+    .navbar.visible {
+        transform: translateX(0); /* Show the navbar when toggled */
+    }
+
+    .navbar {
+        width: 180px; /* Further reduce navbar width for smaller screens */
+    }
+
+  .student-calendar,
+  .student-reports {
+    padding: 15px;
+  }
+
+  .event-card,
+  .report-card {
+    padding: 10px;
+  }
+
+  .student-calendar h4,
+  .student-reports h4 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Desktop-Specific Styles */
+@media (min-width: 1024px) {
+  .main-container {
+    margin-top: 150px; /* Adjust the top margin for desktop */
+    margin-right: 120px; /* Center horizontally */
+  }
+}
+
+
+
+
