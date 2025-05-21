@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -16,11 +16,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let currentUserId = null;
-
 onAuthStateChanged(auth, user => {
   if (!user) return;
-  currentUserId = user.uid;
 
   document.getElementById('upload-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -45,11 +42,11 @@ onAuthStateChanged(auth, user => {
       return;
     }
 
-    // Save metadata in Firestore subcollection
-    await addDoc(collection(db, "teachers", currentUserId, "documents"), {
+    // Save metadata in Firestore "documents" collection (no user id)
+    await addDoc(collection(db, "documents"), {
       title,
       description: desc,
-      fileURL: '../../uploaded-resume/' + data.file_name,// for browser access
+      fileURL: 'uploaded-resume/' + data.file_name,
       fileName: data.file_name,
       fileType: file.type,
       uploadedAt: serverTimestamp()
@@ -61,7 +58,7 @@ onAuthStateChanged(auth, user => {
 
   // --- Display Documents ---
   const docsList = document.getElementById('documents-list');
-  const docsCol = collection(db, "teachers", currentUserId, "documents");
+  const docsCol = collection(db, "documents");
   const docsQuery = query(docsCol, orderBy("uploadedAt", "desc"));
 
   onSnapshot(docsQuery, (snapshot) => {
@@ -109,14 +106,14 @@ onAuthStateChanged(auth, user => {
 
         let filePreview = "";
         if (doc.fileType && doc.fileType.startsWith("image/")) {
-          filePreview = `<img class="enlarge-doc" src="${doc.fileURL}" alt="${doc.fileName}" style="max-width:120px;max-height:120px;display:block;margin-bottom:8px;cursor:pointer;">`;
+          filePreview = `<img class="enlarge-doc" src="../../${doc.fileURL}" alt="${doc.fileName}" style="max-width:120px;max-height:120px;display:block;margin-bottom:8px;cursor:pointer;">`;
         } else if (doc.fileType === "application/pdf") {
-          filePreview = `<div class="enlarge-doc" data-url="${doc.fileURL}" data-type="pdf" style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;cursor:pointer;margin-bottom:8px;">
+          filePreview = `<div class="enlarge-doc" data-url="../../${doc.fileURL}" data-type="pdf" style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;cursor:pointer;margin-bottom:8px;">
             <span style="font-size:48px;">📄</span>
             <span style="position:absolute;opacity:0;">${doc.fileName}</span>
           </div>`;
         } else {
-          filePreview = `<a href="${doc.fileURL}" target="_blank">${doc.fileName}</a>`;
+          filePreview = `<a href="../../${doc.fileURL}" target="_blank">${doc.fileName}</a>`;
         }
         card.innerHTML = `
           ${filePreview}
@@ -131,11 +128,11 @@ onAuthStateChanged(auth, user => {
       docsList.appendChild(groupDiv);
     });
 
-    // Delete button handler
+    // Delete button handler (teacher only)
     docsList.querySelectorAll('.delete-doc-btn').forEach(btn => {
       btn.onclick = async function() {
         if (confirm("Are you sure you want to delete this document?")) {
-          await deleteDoc(doc(db, "teachers", currentUserId, "documents", btn.dataset.id));
+          await deleteDoc(doc(db, "documents", btn.dataset.id));
         }
       };
     });
