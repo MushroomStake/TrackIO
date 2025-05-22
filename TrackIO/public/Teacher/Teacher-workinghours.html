@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Student Hours</title>
+  <link rel="stylesheet" href="Teacher-workinghours.css" />
+  <link rel="stylesheet" href="navbar.css" />
+  <style>
+    /* Student cards container */
+    #student-cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      margin-bottom: 20px;
+    }
+
+    /* Individual student card */
+    .student-card {
+      flex: 1 1 220px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      background-color: #f9f9f9;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+    .student-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      background-color: #e7f0ff;
+    }
+
+    .student-card.selected {
+      border-color: #007bff;
+      background-color: #cce5ff;
+      box-shadow: 0 0 10px #007bff;
+    }
+
+    .student-name {
+      font-weight: 600;
+      font-size: 1.1em;
+      margin-bottom: 4px;
+    }
+
+    .student-email,
+    .student-year {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="main-header">
+    <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+    <nav class="right-header-nav">
+      <a href="#notifications" class="icon-link" id="notification-icon" aria-label="Notifications"></a>
+      <a href="student-profile.html" class="icon-link" aria-label="Profile">
+        <img src="../img/profile.png" alt="Profile Icon" />
+      </a>
+    </nav>
+  </header>
+
+  <!-- Navigation Sidebar -->
+  <nav class="navbar">
+    <a href="Teacher-dashboard.html" class="nav-item">
+      <img src="../img/home.png" alt="Dashboard" />
+      <span>Dashboard</span>
+    </a>
+    <a href="Evaluation-Template/Teacher-evaluation-template.html" class="nav-item">
+      <img src="../img/evaluation-custom.png" alt="Custom Evaluation" />
+      <span>Custom Evaluation</span>
+    </a>
+    <a href="Teacher-workinghours.html" class="nav-item active">
+      <img src="../img/evaluation-custom.png" alt="Custom Working Hours" />
+      <span>Custom Working Hours</span>
+    </a>
+    <a href="Evaluation-Display.html" class="nav-item">
+      <img src="../img/evaluation-icon.png" alt="Evaluation List" />
+      <span>Evaluation List</span>
+    </a>
+    <a href="Teacher-monitor-location.html" class="nav-item">
+      <img src="../img/monitor-student.png" alt="Monitor Student" />
+      <span>Monitor Student</span>
+    </a>
+    <a href="Teacher-document.html" class="nav-item">
+      <img src="../img/monitor-student.png" alt="Documentation" />
+      <span>Documentation</span>
+    </a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="check-in-container">
+    <h2>Manage Student Remaining Hours</h2>
+
+    <!-- Student Cards Container -->
+    <div id="student-cards-container">
+      <p>Loading students...</p>
+    </div>
+
+    <!-- Remaining Hours Input -->
+    <div class="remaining-hours">
+      <label for="remaining-hours-input">Remaining Hours:</label>
+      <input type="number" id="remaining-hours-input" placeholder="Select a student first" disabled />
+      <button id="save-remaining-hours" disabled>Save Remaining Hours</button>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script type="module" src="Teacher-workinghours.js"></script>
+  <script type="module" src="navbar.js"></script>
+</body>
+
+</html>
