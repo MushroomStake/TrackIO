@@ -4,11 +4,15 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(to bottom, #ffffff 80%, #b3e5fc); /* 80% white, 20% light blue/cyan */
+  position: relative;
 }
+
+/* Email display styling */
 .email-display {
   background-color: #f0f0f0;
   padding: 10px;
@@ -16,14 +20,27 @@ body {
   margin-bottom: 10px;
   color: #666;
   font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/*Dropdown*/
+/* Dropdown styling - Responsive */
 .dropdown {
-  position: relative;
-  display: inline-block;
-    margin-bottom: 40em;
-    right: 26em;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10; /* Ensure dropdown appears above other elements */
+}
+
+/* Dropdown button styling */
+.dropdown-button {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: none; /* Hide button by default for desktop */
 }
 
 .dropdown-content {
@@ -32,23 +49,65 @@ body {
   background-color: #f9f9f9;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  padding: 20px 25px;
-  z-index: 1;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 5px;
+  z-index: 11; /* Higher than the dropdown container */
 }
+
 .dropdown-content a {
   color: black;
   text-decoration: none;
-  display: block;
-  left: 18px;
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 8px;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
+.dropdown-content a:hover {
+  color: #007bff;
 }
+
+/* Show dropdown on hover for desktop */
+@media (min-width: 769px) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+  
+  /* Add a visible element to hover on if there's no button */
+  .dropdown > span {
+    cursor: pointer;
+    padding: 8px 12px;
+    display: inline-block;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+}
+
+/* For mobile devices */
+@media (max-width: 768px) {
+  .dropdown-button {
+    display: block; /* Show button on mobile */
+  }
+  
+  .dropdown > span {
+    display: none; /* Hide the span on mobile */
+  }
+  
+  
+  .dropdown-content.show {
+    display: block;
+  }
+}
+
+/* Email input container styling */
 .email-input-container {
   position: relative;
   margin-bottom: 10px;
+  width: 100%;
 }
+
 .domain-suffix {
   position: absolute;
   right: 10px;
@@ -61,25 +120,31 @@ body {
   padding: 2px 5px;
   border-radius: 3px;
 }
+
+/* Error message styling */
 .error-message {
   color: #e74c3c;
   font-size: 14px;
   margin-top: 5px;
   margin-bottom: 10px;
 }
-/* Form container styling */
+
+/* Form container styling - Responsive */
 .form-container {
-  width: 300px;
-  padding: 30px;
+  width: 90%;
+  max-width: 350px;
+  padding: 25px;
   background: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
-  margin: 0; /* Center the form container */
+  margin: 20px 0;
+  box-sizing: border-box;
 }
 
 .form-container h2 {
   margin-bottom: 20px;
   text-align: center;
+  font-size: 1.5rem;
 }
 
 .form-container input {
@@ -89,26 +154,29 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  font-size: 16px;
 }
 
 .form-container button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  margin-top: 10px;
 }
 
 .form-container button:hover {
   background-color: #0056b3;
 }
 
+/* Toggle link styling */
 .toggle-link {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .toggle-link a {
@@ -120,6 +188,7 @@ body {
   text-decoration: underline;
 }
 
+/* Message styling */
 .message {
   background-color: hsl(327, 90%, 28%);
   text-align: center;
@@ -129,29 +198,34 @@ body {
   font-size: 1rem;
   opacity: 0;
   animation: fadeOut 7s forwards;
-  color: white; /* Red color for error messages */
+  color: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .messageDiv {
   display: none;
-  background-color: #f8d7da; /* Light red background for errors */
-  color: #721c24; /* Dark red text for errors */
+  background-color: #f8d7da;
+  color: #721c24;
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #f5c6cb;
   border-radius: 4px;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .hidden {
   display: none;
 }
 
-/* Update logo styling */
+/* Logo styling - Responsive */
 .logo {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .logo-container {
@@ -162,54 +236,102 @@ body {
 }
 
 .main-logo {
-  width: 200px;
+  width: 180px;
   height: auto;
-  max-height: 100px;
+  max-height: 90px;
   object-fit: contain;
 }
 
 .secondary-logo {
-  width: 150px;
+  width: 130px;
   height: auto;
-  max-height: 80px;
+  max-height: 70px;
   object-fit: contain;
 }
 
-/* Hide the logo image on mobile devices */
-@media (max-width: 768px) {
-  .logo-container {
-    flex-direction: column;
-    align-items: center;
-  }
+/* Logo icon styling */
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.2s ease-in-out;
+}
 
-  .main-logo,
-  .secondary-logo {
-    width: 150px;
-    max-height: 70px;
-  }
+.logo-icon:hover {
+  transform: scale(1.1);
 }
 
 /* Logo Links Section */
 .logo-links {
   display: flex;
   justify-content: center;
-  gap: 20px; /* Space between logos */
+  gap: 20px;
   margin-top: 20px;
-  
+  flex-wrap: wrap;
 }
 
 .logo-links a {
   text-decoration: none;
 }
 
-.logo-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%; /* Make the logos circular */
-  object-fit: cover;
-  transition: transform 0.2s ease-in-out;
+/* Media Queries for Responsive Design */
+@media (min-width: 576px) {
+  .form-container {
+    padding: 30px;
+  }
+  
+  .main-logo {
+    width: 200px;
+    max-height: 100px;
+  }
+  
+  .secondary-logo {
+    width: 150px;
+    max-height: 80px;
+  }
+  
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+  }
 }
 
-.logo-icon:hover {
-  transform: scale(1.1); /* Slight zoom effect on hover */
+@media (max-width: 480px) {
+  .dropdown {
+    top: 10px;
+    left: 10px;
+  }
+  
+  .form-container h2 {
+    font-size: 1.3rem;
+  }
+  
+  .form-container input,
+  .form-container button {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .domain-suffix {
+    font-size: 12px;
+    padding: 1px 3px;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 320px) {
+  .main-logo {
+    width: 150px;
+    max-height: 75px;
+  }
+  
+  .secondary-logo {
+    width: 100px;
+    max-height: 50px;
+  }
+  
+  .form-container {
+    padding: 15px;
+  }
 }
