@@ -3,10 +3,9 @@ body {
     font-family: 'Roboto', Arial, sans-serif;
     margin: 0;
     padding: 0 20px;
-    background: linear-gradient(to bottom, #ffffff 80%, #b3e5fc);
     color: #333;
     height: 100vh;
-    margin-left: 200px;
+    margin-left: 150px;
     box-sizing: border-box;
 }
 
@@ -30,7 +29,7 @@ body {
     margin: 20px auto;
     max-width: 800px;
     text-align: center;
-    margin-top: 220px;
+    margin-top: 50px;
 }
 
 .check-in-container h2 {
@@ -40,7 +39,7 @@ body {
     font-weight: bold;
 }
 
-/* Student Cards Container */
+/* Student Cards Container - align left */
 #student-cards-container {
     display: flex;
     flex-wrap: wrap;
@@ -52,20 +51,24 @@ body {
     border-radius: 8px;
     background-color: #fff;
     margin-bottom: 20px;
-    justify-content: center;
+    justify-content: flex-start;   /* <-- changed from center to flex-start */
+    align-items: flex-start;       /* align items to the top/left */
+    text-align: left;              /* ensure text is left-aligned */
 }
 
 /* Individual student card */
 .student-card {
-    flex: 1 1 220px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px 16px;
+    position: relative;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 18px 20px 14px 20px;
+    margin: 12px 8px;
+    background: #fff;
+    transition: box-shadow 0.2s, border 0.2s;
     cursor: pointer;
-    background-color: #f9f9f9;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease, background-color 0.3s ease;
-    text-align: left;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
+    text-align: left;              /* ensure card content is left-aligned */
 }
 
 .student-card:hover {
@@ -74,22 +77,65 @@ body {
 }
 
 .student-card.selected {
-    border-color: #007bff;
-    background-color: #cce5ff;
-    box-shadow: 0 0 10px #007bff;
+    border: 2px solid #1976d2;
+    box-shadow: 0 0 12px #1976d2aa;
+    background: #f0f7ff;
+}
+
+.student-card:focus {
+    border: 2px solid #1976d2;
+}
+
+.selected-check {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    color: #1976d2;
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
 .student-name {
-    font-weight: 600;
-    font-size: 1.1em;
-    margin-bottom: 4px;
+    font-size: 1.18em;
+    font-weight: bold;
+    margin-bottom: 2px;
 }
 
-.student-email,
-.student-year {
-    font-size: 0.9em;
+.student-email {
+    font-size: 0.98em;
     color: #555;
     margin-bottom: 2px;
+}
+
+.student-year {
+    font-size: 0.98em;
+    color: #444;
+    margin-bottom: 2px;
+}
+
+.student-program, .student-block, .student-ojt-hours {
+    font-size: 0.98em;
+    margin-bottom: 2px;
+}
+
+.student-ojt-hours strong {
+    color: #1976d2;
+}
+
+.delete-hours-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.delete-hours-btn:hover {
+    background: #b71c1c;
 }
 
 /* Remaining Hours */
@@ -131,6 +177,74 @@ body {
     background-color: #0056b3;
 }
 
+/* Filter Bar - align left */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+    align-items: center;
+    justify-content: flex-start;   /* <-- changed from center to flex-start */
+}
+
+.filter-bar select, .filter-bar input {
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+    font-size: 1em;
+}
+
+/* Deploy Students Button */
+#deploy-students-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#deploy-students-btn:disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+
+/* Clear Selection Button */
+#clear-selection-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    display: none;
+}
+
+#clear-selection-btn:focus {
+    outline: 2px solid #1976d2;
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #323232;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    z-index: 9999;
+    font-size: 1em;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0.95;
+    pointer-events: none;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     body {
@@ -145,6 +259,7 @@ body {
     #student-cards-container {
         max-height: 250px;
         gap: 12px;
+        justify-content: flex-start; /* keep left-aligned on mobile */
     }
 
     .student-card {
@@ -154,5 +269,9 @@ body {
 
     .remaining-hours input {
         max-width: 100%;
+    }
+
+    .filter-bar {
+        justify-content: flex-start;
     }
 }

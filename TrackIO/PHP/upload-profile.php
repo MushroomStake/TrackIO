@@ -27,13 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $block = $_POST['block'] ?? '';
 
     // Save file
-    $uploadDir = '../uploads/';
+    $uploadDir = '../uploads/'; // Go up 3 levels from PHP to htdocs/TrackIO/uploads/
     if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
+        mkdir($uploadDir, 0777, true);
     }
-
-    $fileName = time() . "_" . basename($file['name']);
-    $relativePath = "uploads/" . $fileName;
+    $fileName = uniqid() . "_" . basename($file['name']);
+    $relativePath = "TRACKIO/TrackIO/uploads/" . $fileName;
     $targetPath = $uploadDir . $fileName;
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
@@ -59,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode([
             "success" => false,
-            "error" => "Failed to move uploaded file"
+            "error" => "Failed to upload file."
         ]);
     }
 }

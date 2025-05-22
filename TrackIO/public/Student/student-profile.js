@@ -35,7 +35,8 @@ async function fetchAndLoadStudentProfile(user) {
             document.getElementById("profile-age").value = studentData.age || "";
             document.getElementById("profile-sex").value = studentData.sex || "";
             document.getElementById("profile-program").value = studentData.program || "";
-            document.getElementById("profile-year-level").value = studentData.yearLevel || "";
+            document.getElementById("profile-year-level").value = 
+                studentData.yearLevel === "2nd Year" ? "2nd Year - Mid Year" : (studentData.yearLevel || "");
             document.getElementById("profile-block").value = studentData.block || "";
 
             const profilePhoto = studentData.profile_pic
@@ -68,8 +69,7 @@ async function updateStudentProfile(user) {
         const block = document.getElementById("profile-block").value;
         const photoFile = document.getElementById("photo-upload").files[0];
 
-        if (!firstName || !lastName) {
-            alert("First name and last name cannot be empty.");
+        if (!validateProfileForm()) {
             return;
         }
 
@@ -106,7 +106,7 @@ async function updateStudentProfile(user) {
             formData.append("yearLevel", yearLevel);
             formData.append("block", block);
 
-            const response = await fetch("http://localhost/TrackIO/PHP/upload-profile.php", {
+            const response = await fetch("http://localhost/TrackIO/TRACKIO/TrackIO/PHP/upload-profile.php", {
                 method: "POST",
                 body: formData
             });
@@ -126,7 +126,8 @@ async function updateStudentProfile(user) {
                     profile_pic: relativePath
                 });
 
-                document.getElementById("profile-photo").src = `http://localhost/TrackIO/${relativePath}`;
+                const filename = relativePath.split('/').pop();
+                document.getElementById("profile-photo").src = `http://localhost/TrackIO/TRACKIO/TrackIO/uploads/${filename}`;
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
                 throw new Error("Failed to parse JSON response from PHP backend.");
@@ -140,6 +141,44 @@ async function updateStudentProfile(user) {
     }
 }
 
+function validateProfileForm() {
+    const firstName = document.getElementById("profile-first-name").value.trim();
+    const lastName = document.getElementById("profile-last-name").value.trim();
+    const contactNumber = document.getElementById("profile-contact-number").value.trim();
+    const email = document.getElementById("profile-email").textContent.trim();
+
+    if (!firstName || !lastName) {
+        showToast("First name and last name are required.");
+        return false;
+    }
+    if (!/^\d{10,15}$/.test(contactNumber)) {
+        showToast("Please enter a valid contact number.");
+        return false;
+    }
+    if (!/^[\w\-.]+@[\w\-.]+\.\w+$/.test(email)) {
+        showToast("Invalid email address.");
+        return false;
+    }
+    return true;
+}
+
+function showToast(message, duration = 2500) {
+    let toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, duration);
+}
+
+function showLoading(isLoading) {
+    const loadingIndicator = document.getElementById("loading-indicator");
+    if (loadingIndicator) {
+        loadingIndicator.style.display = isLoading ? "block" : "none";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -148,8 +187,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const saveButton = document.getElementById("save-profile-button");
             if (saveButton) {
-                saveButton.addEventListener("click", () => {
-                    updateStudentProfile(user);
+                saveButton.addEventListener("click", async () => {
+                    if (!validateProfileForm()) return;
+                    saveButton.disabled = true;
+                    showLoading(true);
+                    await updateStudentProfile(user);
+                    saveButton.disabled = false;
+                    showLoading(false);
                 });
             }
         } else {
@@ -171,4 +215,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    document.getElementById("photo-upload").addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById("profile-photo").src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 });
