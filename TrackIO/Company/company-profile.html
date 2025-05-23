@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Company Profile</title>
+  <link rel="stylesheet" href="company-profile-style.css" />
+  <link rel="stylesheet" href="navbar.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  
+  <script type="module" src="company-profile.js" defer></script>
+</head>
+<body>
+   
+    <!-- Header -->
+    <header class="main-header">
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            
+            <a href="company-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+            
+        </nav>
+    </header>
+
+    <!-- Notification Pop-Up -->
+    <div class="notification-popup hidden" id="notification-popup"></div>
+
+ <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="company-dashboard.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="company-applicant.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Applicants</span>
+        </a>
+
+        <a href="company-evaluation.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Evaluate Student</span>
+        </a>
+        
+        <a href="company-capture.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Student Attendance</span>
+        </a>
+    </nav>
+  </header>
+
+
+  <main class="profile-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="profile-photo-container">
+        <!-- Profile Preview and Upload -->
+        <img id="profilePreview" src="../img/sample-profile.png" alt="Profile Picture" style="max-width: 200px; display: block; margin-top: 10px;" />
+        <input type="file" id="uploadPhoto" accept="image/*" />
+      </div>
+      <div class="company-info">
+        <input type="text" id="companyName" placeholder="Company Name" />
+        <textarea id="companyDescription" placeholder="Company Description"></textarea>
+        <label>
+          <span>Company Type:</span>
+          <input type="text" id="companyType" placeholder="Type of Business" />
+        </label>
+        <label>
+          <span>Open for OJT:</span>
+          <input type="checkbox" id="openForOJT" />
+        </label>
+        <!-- Business Proof Upload -->
+        <label>
+          <span>Upload Business Proof:</span>
+          <p id="proofNote" style="font-size: 12px; color: gray;">Allowed file types: Images (.jpg, .jpeg, .png) and PDFs (.pdf)</p>
+        </label>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section">
+      <p id="locationMessage">Saved location: Not set</p>
+      <div class="map-controls">
+        <input type="text" id="locationSearch" placeholder="Search for a location" autocomplete="off" />
+        <div id="suggestions"></div>
+        <button id="searchLocation">Search</button>
+      </div>
+      <div id="map" style="height: 500px;"></div>
+      <div class="map-controls">
+        <label>
+          <input type="checkbox" id="satelliteToggle" />
+          Satellite View
+        </label>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="save-profile">
+      <button id="saveProfile">Save Profile</button>
+      <button id="editProfile" style="display: none;">Edit</button>
+    </div>
+  </main>
+  <script scr="navbar.js"></script>
+</body>
+</html>

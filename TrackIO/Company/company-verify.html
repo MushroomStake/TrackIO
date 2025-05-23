@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Email Verification - Track IO</title>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      sendEmailVerification,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9z8Amm-vlNcbw-XqEnrkt_WpWHaGfwtQ",
+      authDomain: "trackio-f5b07.firebaseapp.com",
+      projectId: "trackio-f5b07",
+      storageBucket: "trackio-f5b07.appspot.com",
+      messagingSenderId: "1083789426923",
+      appId: "1:1083789426923:web:c372749a28e84ff9cd7eae"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const email = localStorage.getItem("pendingVerificationEmail");
+    const companyName = localStorage.getItem("tempCompanyName");
+    const password = localStorage.getItem("tempPassword");
+
+    const emailSpan = document.getElementById("user-email");
+    const messageDiv = document.getElementById("message");
+    const resendBtn = document.getElementById("resend-verification");
+
+    emailSpan.textContent = email || "No email found";
+
+    async function startVerificationProcess() {
+      if (!email || !companyName || !password) {
+        messageDiv.textContent = "Missing registration data. Please go back and fill the form.";
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await sendEmailVerification(user);
+        messageDiv.textContent = "Verification email sent. Please check your inbox.";
+
+        const poll = setInterval(async () => {
+          await auth.currentUser.reload();
+          if (auth.currentUser.emailVerified) {
+            clearInterval(poll);
+
+            // Save company info to Firestore
+            await setDoc(doc(db, "companies", user.uid), {
+              companyName: companyName,
+              email: email,
+              uid: user.uid
+            });
+
+            // Clean up temp storage
+            localStorage.removeItem("pendingVerificationEmail");
+            localStorage.removeItem("tempCompanyName");
+            localStorage.removeItem("tempPassword");
+
+            messageDiv.textContent = "Email verified! Redirecting to login...";
+            setTimeout(() => {
+              window.location.href = "company-index.html";
+            }, 2000);
+          }
+        }, 3000); // check every 3 seconds
+
+      } catch (error) {
+        console.error("Error during verification:", error);
+        messageDiv.textContent = error.message;
+      }
+    }
+
+    resendBtn.addEventListener("click", async () => {
+      try {
+        const user = auth.currentUser;
+        if (user && !user.emailVerified) {
+          await sendEmailVerification(user);
+          alert("Verification email resent.");
+        }
+      } catch (error) {
+        console.error("Resend error:", error);
+        messageDiv.textContent = error.message;
+      }
+    });
+
+    // Start the verification process after DOM loads
+    window.addEventListener("DOMContentLoaded", startVerificationProcess);
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 50px;
+    }
+
+    .box {
+      max-width: 400px;
+      margin: auto;
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #ff6f00;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ff8800;
+    }
+
+    p {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Verify Your Email 📧</h2>
+    <p>Email: <strong id="user-email">Loading...</strong></p>
+    <button id="resend-verification">Resend Verification</button>
+    <p id="message"></p>
+  </div>
+</body>
+</html>

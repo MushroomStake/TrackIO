@@ -1,0 +1,153 @@
+section {
+    margin-left: 300px;
+    max-width: 900px; 
+    background: #f8f9fa; 
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); 
+    padding: 28px 32px;
+}
+
+@media (max-width: 768px) {
+    section {
+        margin-left: 0;
+    }
+}
+
+.applicant-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+}
+.applicant-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    padding: 18px 22px;
+    min-width: 220px;
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 5px solid #4caf50;
+}
+.applicant-card .applicant-name {
+    font-size: 1.1em;
+    margin-bottom: 6px;
+}
+.applicant-card .applicant-email {
+    color: #555;
+    font-size: 0.98em;
+    margin-bottom: 8px;
+}
+.applicant-card .applicant-status {
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 8px;
+    font-size: 0.95em;
+}
+.applicant-card .accepted {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+.applicant-card .declined {
+    background: #ffebee;
+    color: #c62828;
+}
+.applicant-card .applicant-status.on-working {
+    background: #fffde7;
+    color: #f9a825;
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 8px;
+    display: inline-block;
+}
+.applicant-card .applicant-status.completed {
+    background: #e8f5e9;
+    color: #388e3c;
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 8px;
+    display: inline-block;
+}
+.applicant-card .applicant-status.reset {
+    background: #f5f5f5;
+    color: #888;
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.pagination-controls button {
+    margin: 0 8px;
+    padding: 6px 16px;
+    border-radius: 5px;
+    border: none;
+    background: #1976d2;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.pagination-controls button:disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+.no-applicants {
+    color: #888;
+    margin: 24px 0;
+    text-align: center;
+}
+
+.applicant-photo {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.reset-btn {
+    margin-top: 8px;
+    background: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 14px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background 0.2s;
+}
+.reset-btn:hover {
+    background: #c62828;
+}
+
+.scan-animate-text {
+    display: inline-block;
+    font-size: 1.25em;
+    font-weight: bold;
+    color: #1976d2;
+    letter-spacing: 1px;
+    animation: scalePulse 2.5s infinite cubic-bezier(.4,0,.2,1);
+    transition: color 0.3s;
+    margin-right: 6px;
+    user-select: none;
+}
+@keyframes scalePulse {
+    0% { transform: scale(1);}
+    50% { transform: scale(1.18);}
+    100% { transform: scale(1);}
+}
+#scan-btn img,
+.scan-animate-icon {
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1), box-shadow 0.3s;
+}
+
+#scan-btn:hover img,
+.scan-animate-icon:hover {
+    transform: scale(1.18) rotate(-8deg);
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.18);
+    cursor: pointer;
+}

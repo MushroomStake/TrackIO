@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Register</title>
+  <link rel="stylesheet" href="../styles.css" />
+  
+</head>
+<body>
+  <div class="logo">
+    <div class="logo-container">
+      <img src="../img/logo1.png" alt="TrackIO Logo" class="main-logo">
+      <img src="../img/gc-ccs.png" alt="GC-CCS Icon" class="secondary-logo">
+    </div>
+  </div>
+  <div class="form-container" id="form-container">
+    <div id="register-form-container">
+      <h2>Student Register</h2>
+      <form id="completeProfileForm">
+        <div class="email-input-container">
+          <input type="text" id="rStudentNumber" placeholder="Student Number" required/>
+          <span class="domain-suffix">@gordoncollege.edu.ph</span>
+        </div>
+        <div id="emailError" class="error-message"></div>
+        <input type="text" id="rFirstName" placeholder="First Name" required />
+        <input type="text" id="rLastName" placeholder="Last Name" required />
+        <input type="password" id="rPassword" placeholder="Password" required />
+        <input type="password" id="rConfirmPassword" placeholder="Confirm Password" required />
+        <button type="submit" id="submitCompleteProfile">Complete Registration</button>
+        <div id="registerMessage"></div>
+      </form>
+      <p class="text-sm text-center mt-4">
+        By registering, you agree to our
+        <button type="button" onclick="toggleTermsModal()" class="text-blue-600 underline bg-transparent border-none cursor-pointer">
+          Terms and Conditions
+        </button>.
+      </p>
+      <div class="toggle-link">
+        <p>Already have an account? <a href="student-login.html">Login</a></p>
+      </div>
+    </div>
+  </div>
+<!-- App Short Description-->
+             <div class="app-description" style="text-align:center; max-width: 500px; margin: 0 auto 20px auto; padding: 0 15px;">
+                  <p style="font-size: 14px; color: #444;">
+                     <strong>TrackIO</strong> is a streamlined OJT (On-the-Job Training) tracker designed for Gordon College students, companies, and faculty. 
+                     It helps monitor work hours, manage evaluations, and ensure smooth collaboration between students and their training partners. 
+                     Log in to access your personalized dashboard and start tracking your progress today.
+                 </p>
+            </div>
+  <!-- Terms Modal -->
+  <div id="termsModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="close-modal" onclick="toggleTermsModal()">&times;</span>
+      <h2>Terms and Conditions for TrackIO – OJT Tracker</h2>
+      <p><strong>Effective Date:</strong> Until the students is graduate from the school. 2028</p>
+      <h3>1. Eligibility</h3>
+      <p>TrackIO is intended for use by students, schools, and partner companies participating in an OJT program.</p>
+      <h3>2. Account Registration</h3>
+      <p>Users must provide accurate and complete information when registering for the Service.</p>
+      <h3>3. Use of the Service</h3>
+      <p>TrackIO provides tools for logging attendance, submitting reports, and viewing feedback.</p>
+      <h3>4. Data Collection and Privacy</h3>
+      <p>We collect personal data including name, email, training hours, and performance data.</p>
+      <h3>5. User Conduct</h3>
+      <p>You agree not to falsify logs, share credentials, or misuse the Service.</p>
+      <h3>6. Availability and Access</h3>
+      <p>We aim for high availability but do not guarantee uninterrupted service.</p>
+      <h3>7. Intellectual Property</h3>
+      <p>All content and services provided are owned by TrackIO and protected by applicable law.</p>
+      <h3>8. Termination</h3>
+      <p>We may terminate access for violations of these Terms without prior notice.</p>
+      <h3>9. Limitation of Liability</h3>
+      <p>We are not liable for damages from using or being unable to use the app.</p>
+      <h3>10. Modifications</h3>
+      <p>We may revise these Terms and notify users of changes. Continued use means acceptance.</p>
+      <h3>11. Governing Law</h3>
+      <p>These Terms are governed by the laws of Philippines.</p>
+      <h3>Contact Us</h3>
+      <p>Email: TrackIO@gmail.com <br> Phone: 0969083341 <br> Address: Olongapo City</p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("completeProfileForm");
+    const studentNumberInput = document.getElementById("rStudentNumber");
+    const firstNameInput = document.getElementById("rFirstName");
+    const lastNameInput = document.getElementById("rLastName");
+    const passwordInput = document.getElementById("rPassword");
+    const confirmPasswordInput = document.getElementById("rConfirmPassword");
+    const messageDiv = document.getElementById("registerMessage");
+    const emailErrorDiv = document.getElementById("emailError");
+
+    const hiddenEmailInput = document.createElement("input");
+    hiddenEmailInput.type = "hidden";
+    hiddenEmailInput.id = "rEmail";
+    form.appendChild(hiddenEmailInput);
+
+    studentNumberInput.addEventListener("input", function() {
+      if (!/^\d*$/.test(this.value)) {
+        emailErrorDiv.textContent = "Student number should contain only numbers";
+        this.value = this.value.replace(/\D/g, '');
+      } else {
+        emailErrorDiv.textContent = "";
+      }
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const studentNumber = studentNumberInput.value.trim();
+      const email = studentNumber + "@gordoncollege.edu.ph";
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      hiddenEmailInput.value = email;
+
+      if (!studentNumber || !firstName || !lastName || !password || !confirmPassword) {
+        messageDiv.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        messageDiv.textContent = "Passwords do not match.";
+        return;
+      }
+
+      if (!/^\d+$/.test(studentNumber)) {
+        emailErrorDiv.textContent = "Student number should contain only numbers.";
+        return;
+      }
+
+      localStorage.setItem("pendingVerificationEmail", email);
+      localStorage.setItem("tempFirstName", firstName);
+      localStorage.setItem("tempLastName", lastName);
+      localStorage.setItem("tempPassword", password);
+
+      window.location.href = "verification.html";
+    });
+
+    function toggleTermsModal() {
+      const modal = document.getElementById("termsModal");
+      modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+    }
+  </script>
+</body>
+</html>

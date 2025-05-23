@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Dashboard</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="navbar.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="company-applicant.css">
+</head>
+<body>
+   
+    <!-- Header -->
+    <header class="main-header">
+        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+        <nav class="right-header-nav">
+            
+            <a href="company-profile.html" class="icon-link" aria-label="Profile">
+                <img src="../img/profile.png" alt="Profile Icon">
+            </a>
+            <button id="logout-button" class="logout-button" aria-label="Logout">Logout</button>
+        </nav>
+    </header>
+
+    <!-- Notification Pop-Up -->
+    <div class="notification-popup hidden" id="notification-popup"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="company-dashboard.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="company-applicant.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/applicant.png" alt="Company Dashboard">
+            <span>Applicants</span>
+        </a>
+
+        <a href="company-evaluation.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Evaluate Student</span>
+        </a>
+        
+        <a href="company-capture.html" class="nav-item" aria-label="Company Dashboard">
+            <img src="../img/evaluation-icon.png" alt="Company Finder Icon">
+            <span>Student Attendance</span>
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+<!-- Main Content -->
+
+<section id="ojt-settings">
+  <h2 style="margin-bottom: 18px; color: #007bff;">OJT Settings</h2>
+  <div style="display: flex; align-items: center; margin-bottom: 18px;">
+    <label class="switch">
+      <input type="checkbox" id="open-for-ojt-checkbox">
+      <span class="slider round"></span>
+    </label>
+    <span style="margin-left: 12px; font-weight: 500;">Open for OJT Students</span>
+  </div>
+  <div id="ojt-editable-fields">
+    <label for="ojt-requirements" style="font-weight: 500;">What are you looking for?</label><br>
+    <textarea id="ojt-requirements" rows="3" style="width:100%;max-width:100%;margin-bottom:12px;resize:vertical;border-radius:6px;border:1px solid #ccc;padding:8px;"></textarea>
+    <br>
+    <label for="ojt-capacity" style="font-weight: 500;">How many students can you accommodate?</label><br>
+    <input type="number" id="ojt-capacity" min="1" style="width:100px;border-radius:6px;border:1px solid #ccc;padding:6px 8px;" /><br>
+  </div>
+  <button id="edit-ojt-settings-btn" style="margin-top:18px;background:#007bff;color:#fff;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:500;">Edit OJT Settings</button>
+  <button id="save-ojt-settings-btn" style="margin-top:18px;background:#28a745;color:#fff;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:500;display:none;">Save OJT Settings</button>
+  <span id="ojt-save-status" style="margin-left:10px;color:green;display:none;">Saved!</span>
+</section>
+
+<main class="dashboard-content">
+    <section id="ojt-applicants-section">
+        <h2>OJT Applicants</h2>
+        <div id="applicants-container" class="applicants-list">
+            <!-- Applicant cards will be injected here by JS -->
+        </div>
+    </section>
+</main>
+
+    <script type="module" src="navbar.js"></script> <!-- Link to external JavaScript -->
+    <script type="module" src="company-applicant.js"></script>
+    <!-- Firebase Auth Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9z8Amm-vlNcbw-XqEnrkt_WpWHaGfwtQ",
+            authDomain: "trackio-f5b07.firebaseapp.com",
+            projectId: "trackio-f5b07",
+            storageBucket: "trackio-f5b07.firebasestorage.app",
+            messagingSenderId: "1083789426923",
+            appId: "1:1083789426923:web:c372749a28e84ff9cd7eae",
+            measurementId: "G-DSPVFG2CYW"
+        };
+        
+        // Init Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Logout functionality
+        document.getElementById("logout-button").addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                window.location.href = "company-index.html"; // Redirect to login page after logout
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+
+        // Firebase Auth state listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (!user.emailVerified) {
+                    // If email is not verified, redirect to verification page
+                    window.location.href = "company-verify.html";
+                } else {
+                    const userDoc = await getDoc(doc(db, "companies", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        // Update user info on the dashboard
+                        document.getElementById("user-name").textContent = data.companyName;
+                        document.getElementById("user-email").textContent = data.email;
+                        document.getElementById("dashboardCompanyName").textContent = data.companyName;
+                        document.getElementById("dashboardCompanyEmail").textContent = data.email;
+                    }
+                }
+            } else {
+                // Redirect if not logged in
+                window.location.href = "company-index.html";
+            }
+        });
+    </script>
+</body>
+</html>

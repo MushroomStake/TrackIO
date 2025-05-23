@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Student Hours</title>
+  <link rel="stylesheet" href="Teacher-workinghours.css" />
+  <link rel="stylesheet" href="navbar.css" />
+
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="main-header">
+    <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+    <nav class="right-header-nav">
+      <a href="#notifications" class="icon-link" id="notification-icon" aria-label="Notifications"></a>
+      <a href="student-profile.html" class="icon-link" aria-label="Profile">
+        <img src="../img/profile.png" alt="Profile Icon" />
+      </a>
+    </nav>
+  </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="Teacher-dashboard.html" class="nav-item" aria-label="Dashboard">
+            <img src="../img/home.png" alt="home Icon">
+            <span>Dashboard</span>
+        </a>
+         <a href="Teacher-workinghours.html" class="nav-item" aria-label="Evaluate Student">
+            <img src="../img/evaluation-custom.png" alt="Evaluation">
+            <span>Deploy Student</span>
+        </a>
+        <a href="Teacher-monitor-location.html" class="nav-item" aria-label="Documentation">
+            <img src="../img/monitor-student.png" alt="Documentation Icon">
+            <span>Monitor Student</span>
+        </a>
+        <a href="Teacher-document.html" class="nav-item" aria-label="Documentation">
+            <img src="../img/monitor-student.png" alt="Documentation Icon">
+            <span>Documentation</span>
+        </a>
+    </nav>
+
+  <!-- Main Content -->
+  <main class="check-in-container">
+    <h2>Student OJT Deployment</h2>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <select id="filter-program">
+        <option value="">All Programs</option>
+        <option value="BSIT">BSIT</option>
+        <option value="BSCS">BSCS</option>
+        <option value="BSEMC">BSEMC</option>
+      </select>
+      <select id="filter-year">
+        <option value="">All Years</option>
+        <option value="2nd Year - Mid Year">2nd Year - Mid Year</option>
+        <option value="4th Year">4th Year</option>
+      </select>
+      <select id="filter-block">
+        <option value="">All Blocks</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+      </select>
+      <input type="text" id="search-student" placeholder="Search by name, program, year, block..." />
+      <button id="deploy-students-btn" disabled>Deploy Student</button>
+    </div>
+
+    <!-- Selection Info -->
+    <div class="selection-info">
+      <span id="selected-count">0 selected</span>
+      <button id="clear-selection-btn" style="display:none;">Clear Selection</button>
+    </div>
+
+    <!-- Student Cards Container -->
+    <div id="student-cards-container">
+      <p>Loading students...</p>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script type="module" src="Teacher-workinghours.js"></script>
+  <script type="module" src="navbar.js"></script>
+</body>
+
+</html>

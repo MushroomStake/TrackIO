@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Company Login and Register</title>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../styles.css" />
+  <!-- Auth Script -->
+  <script type="module" src="company-auth.js" defer></script>
+
+</head>
+<body>
+   <!-- Aaccount filter Dropdown -->
+         <div class="dropdown">
+            <span>Account Filter</span>
+                <div class="dropdown-content">
+                   
+                            <a href="../Student/student-login.html" aria-label="Student Login">
+                                    <img src="../img/student-icon.png" alt="Student Logo" class="logo-icon">
+                                    <span>Student</span>
+                            </a>
+                             <a href="../Company/company-index.html" aria-label="Company Login">
+                                 <img src="../img/company-icon.png" alt="Company Logo" class="logo-icon">
+                                <span>Company</span>
+                            </a>
+                                <a href="../Teacher/Teacher-login.html" aria-label="Faculty Login">
+                                    <img src="../img/faculty-icon.png" alt="Faculty Logo" class="logo-icon">
+                                     <span>Coordinator</span>
+                                </a>      
+                </div>
+            </div>
+            
+      <div class="logo">
+        <div class="logo-container">
+            <img src="../img/logo1.png" alt="TrackIO Logo" class="main-logo">
+            <img src="../img/gc-ccs.png" alt="GC-CCS Icon" class="secondary-logo">
+        </div>
+    </div>
+  <div class="form-container" id="form-container">
+
+    <!-- Login Form -->
+    <div id="login-form-container">
+      <h2>Company Login</h2>
+      <form id="companyLoginForm">
+        <input type="email" id="lEmail" placeholder="Email" required />
+        <input type="password" id="lPassword" placeholder="Password" required />
+        <button type="submit" id="submitLogin">Login</button>
+        <div id="loginMessage" class="hidden"></div>
+      </form>
+      <div class="toggle-link">
+        <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div id="register-form-container" class="hidden">
+      <h2>Company Registration</h2>
+      <form id="companyRegisterForm">
+        <input type="text" id="rCompanyName" placeholder="Company Name" required />
+        <input type="email" id="rEmail" placeholder="Email" required />
+        <input type="password" id="rPassword" placeholder="Password" required />
+        <button type="submit" id="submitSignUp">Register</button>
+        <div id="signUpMessage" class="hidden"></div>
+      </form>
+       <p class="text-sm text-center mt-4">
+        By registering, you agree to our
+        <button type="button" onclick="toggleTermsModal()" class="text-blue-600 underline bg-transparent border-none cursor-pointer">
+          Terms and Conditions
+        </button>.
+      </p>
+      <div class="toggle-link">
+        <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+      </div>
+    </div>
+    
+  </div>
+  <!-- App Short Description-->
+             <div class="app-description" style="text-align:center; max-width: 500px; margin: 0 auto 20px auto; padding: 0 15px;">
+                  <p style="font-size: 14px; color: #444;">
+                     <strong>TrackIO</strong> is a streamlined OJT (On-the-Job Training) tracker designed for Gordon College students, companies, and faculty. 
+                     It helps monitor work hours, manage evaluations, and ensure smooth collaboration between students and their training partners. 
+                     Log in to access your personalized dashboard and start tracking your progress today.
+                 </p>
+            </div>
+ <!-- Terms Modal -->
+  <div id="termsModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="close-modal" onclick="toggleTermsModal()">&times;</span>
+      <h2>Terms and Conditions for TrackIO – OJT Tracker</h2>
+      <h3>1. Eligibility</h3>
+      <p>TrackIO is intended for use by students, schools, and partner companies participating in an OJT program.</p>
+      <h3>2. Account Registration</h3>
+      <p>Users must provide accurate and complete information when registering for the Service.</p>
+      <h3>3. Use of the Service</h3>
+      <p>TrackIO provides tools for logging attendance, submitting reports, and viewing feedback.</p>
+      <h3>4. Data Collection and Privacy</h3>
+      <p>We collect personal data including name, email, training hours, and performance data.</p>
+      <h3>5. User Conduct</h3>
+      <p>You agree not to falsify logs, share credentials, or misuse the Service.</p>
+      <h3>6. Availability and Access</h3>
+      <p>We aim for high availability but do not guarantee uninterrupted service.</p>
+      <h3>7. Intellectual Property</h3>
+      <p>All content and services provided are owned by TrackIO and protected by applicable law.</p>
+      <h3>8. Termination</h3>
+      <p>We may terminate access for violations of these Terms without prior notice.</p>
+      <h3>9. Limitation of Liability</h3>
+      <p>We are not liable for damages from using or being unable to use the app.</p>
+      <h3>10. Modifications</h3>
+      <p>We may revise these Terms and notify users of changes. Continued use means acceptance.</p>
+      <h3>11. Governing Law</h3>
+      <p>These Terms are governed by the laws of Philippines.</p>
+      <h3>Contact Us</h3>
+      <p>Email: TrackIO@gmail.com <br> Phone: 0969083341 <br> Address: Olongapo City</p>
+    </div>
+  </div>
+
+  <!-- Toggle Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginFormContainer = document.getElementById('login-form-container');
+      const registerFormContainer = document.getElementById('register-form-container');
+      const showRegisterLink = document.getElementById('show-register');
+      const showLoginLink = document.getElementById('show-login');
+
+      showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginFormContainer.classList.add('hidden');
+        registerFormContainer.classList.remove('hidden');
+      });
+
+      showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerFormContainer.classList.add('hidden');
+        loginFormContainer.classList.remove('hidden');
+      });
+    });
+     function toggleTermsModal() {
+      const modal = document.getElementById("termsModal");
+      modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+    }
+  </script>
+</body>
+</html>
