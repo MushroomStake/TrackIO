@@ -62,11 +62,15 @@
     <span style="margin-left: 12px; font-weight: 500;">Open for OJT Students</span>
   </div>
   <div id="ojt-editable-fields">
-    <label for="ojt-requirements" style="font-weight: 500;">What are you looking for?</label><br>
-    <textarea id="ojt-requirements" rows="3" style="width:100%;max-width:100%;margin-bottom:12px;resize:vertical;border-radius:6px;border:1px solid #ccc;padding:8px;"></textarea>
+    <div id="positions-section">
+      <label style="font-weight: 500;">What are you looking for?</label>
+      <div id="positions-list" aria-live="polite"></div>
+      <button type="button" id="add-position-btn"
+        style="margin-top:10px;background:#1976d2;color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-weight:500;">
+        Add Position
+      </button>
+    </div>
     <br>
-    <label for="ojt-capacity" style="font-weight: 500;">How many students can you accommodate?</label><br>
-    <input type="number" id="ojt-capacity" min="1" style="width:100px;border-radius:6px;border:1px solid #ccc;padding:6px 8px;" /><br>
   </div>
   <button id="edit-ojt-settings-btn" style="margin-top:18px;background:#007bff;color:#fff;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:500;">Edit OJT Settings</button>
   <button id="save-ojt-settings-btn" style="margin-top:18px;background:#28a745;color:#fff;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:500;display:none;">Save OJT Settings</button>
@@ -126,11 +130,6 @@
                     const userDoc = await getDoc(doc(db, "companies", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        // Update user info on the dashboard
-                        document.getElementById("user-name").textContent = data.companyName;
-                        document.getElementById("user-email").textContent = data.email;
-                        document.getElementById("dashboardCompanyName").textContent = data.companyName;
-                        document.getElementById("dashboardCompanyEmail").textContent = data.email;
                     }
                 }
             } else {

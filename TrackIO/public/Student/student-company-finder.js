@@ -44,6 +44,9 @@ async function loadCompanies() {
     
 
     try {
+        // Show spinner before loading
+        companiesList.innerHTML = '<div class="loading-spinner"></div>';
+
         const querySnapshot = await getDocs(q);
         companiesList.innerHTML = ""; // clear previous entries
 
@@ -95,6 +98,7 @@ async function loadCompanies() {
 
             const companyCard = document.createElement("div");
             companyCard.classList.add("company-card");
+            companyCard.setAttribute("tabindex", "0");
 
             // Add remove icon if accepted
             let removeIconHTML = "";
@@ -106,26 +110,142 @@ async function loadCompanies() {
                 `;
             }
 
+            // --- OJT Positions HTML ---
+            let positionsHTML = '';
+            if (company.ojt_positions && Array.isArray(company.ojt_positions) && company.ojt_positions.length > 0) {
+                positionsHTML = `<ul class="company-positions-list">` +
+                    company.ojt_positions.map(pos => `
+                        <li>
+                            <strong>${pos.title || "Position"}</strong>
+                            ${pos.desc ? `<br><span style="color:#555;">${pos.desc}</span>` : ""}
+                            <br><span style="color:#1976d2;">Slots:</span> ${pos.slots || 1}
+                            <br><span style="color:#1976d2;">Skills:</span> ${pos.skills || "-"}
+                            <br><span style="color:#1976d2;">Year:</span> ${(pos.yearLevels || []).join(", ") || "-"}
+                            <br><span style="color:#1976d2;">Program:</span> ${(pos.programs || []).join(", ") || "-"}
+                        </li>
+                    `).join('') +
+                    `</ul>`;
+            } else {
+                positionsHTML = `<p style="color:#888;">No OJT positions listed.</p>`;
+            }
+
+            // After fetching applications for this company:
+            const acceptedStudents = [];
+            const applicationsCollection = collection(db, "companies", companyId, "applications");
+            const acceptedQuery = query(applicationsCollection, where("status", "==", "accepted"));
+            const acceptedRes = await getDocs(acceptedQuery);
+            acceptedRes.forEach(doc => {
+                const d = doc.data();
+                acceptedStudents.push({
+                    name: `${d.firstName || ""} ${d.lastName || ""}`,
+                    email: d.student_email,
+                    profile_photo: d.profile_photo && d.profile_photo !== "default-profile.png"
+                        ? d.profile_photo
+                        : "../img/sample-profile.jpg" // Use sample-profile if none or default
+                });
+            });
+
+            let acceptedHTML = "";
+            if (acceptedStudents.length > 0) {
+                acceptedHTML = `
+                    <div class="accepted-students-preview">
+                        <strong>Currently Working Students:</strong>
+                        <div class="student-avatars">
+                            ${acceptedStudents.slice(0, 3).map(s => `
+                                <img src="${s.profile_photo}" alt="${s.name || 'Student'}" title="${s.name}" class="student-avatar" />
+                            `).join('')}
+                            ${acceptedStudents.length > 3 ? `<span class="view-all-students" data-id="${companyId}" style="cursor:pointer;color:#1976d2;">View All</span>` : ""}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Compact OJT positions (titles only)
+            let compactPositions = '';
+            if (company.ojt_positions && company.ojt_positions.length > 0) {
+                compactPositions = company.ojt_positions.slice(0, 2).map(pos =>
+                    `<span class="ojt-title">${pos.title}</span>`
+                ).join(", ");
+                if (company.ojt_positions.length > 2) {
+                    compactPositions += ` <span class="more-ojt-positions">+${company.ojt_positions.length - 2} more</span>`;
+                }
+            } else {
+                compactPositions = '<span style="color:#888;">None listed</span>';
+            }
+
+            // Expandable OJT positions (full details, hidden by default)
+            let expandedPositions = '';
+            if (company.ojt_positions && company.ojt_positions.length > 0) {
+                expandedPositions = `<ul class="company-positions-list">` +
+                    company.ojt_positions.map(pos => `
+                        <li>
+                            <strong>${pos.title || "Position"}</strong>
+                            ${pos.desc ? `<br><span style="color:#555;">${pos.desc}</span>` : ""}
+                            <br><span style="color:#1976d2;">Slots:</span> ${pos.slots || 1}
+                            <br><span style="color:#1976d2;">Skills:</span> ${pos.skills || "-"}
+                            <br><span style="color:#1976d2;">Year:</span> ${(pos.yearLevels || []).join(", ") || "-"}
+                            <br><span style="color:#1976d2;">Program:</span> ${(pos.programs || []).join(", ") || "-"}
+                        </li>
+                    `).join('') +
+                    `</ul>`;
+            }
+
+            // Compact accepted students (avatars only)
+            let compactAccepted = '';
+            if (acceptedStudents.length > 0) {
+                compactAccepted = `
+                    <div class="accepted-students-preview">
+                        <strong>Currently Working Students:</strong>
+                        <div class="student-avatars">
+                            ${acceptedStudents.slice(0, 3).map(s => `
+                                <img src="${s.profile_photo}" alt="${s.name || 'Student'}" title="${s.name}" class="student-avatar" />
+                            `).join('')}
+                            ${acceptedStudents.length > 3 ? `<span class="view-all-students" data-id="${companyId}" style="cursor:pointer;color:#1976d2;">View All</span>` : ""}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Expandable accepted students (full list, hidden by default)
+            let expandedAccepted = '';
+            if (acceptedStudents.length > 0) {
+                expandedAccepted = `
+                    <div class="expanded-accepted-students" style="margin-top:10px;">
+                        <strong>All Accepted Students:</strong>
+                        <div class="student-avatars">
+                            ${acceptedStudents.map(s => `
+                                <img src="${s.profile_photo}" alt="${s.name || 'Student'}" title="${s.name}" class="student-avatar" />
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Only show compact info in the card
             companyCard.innerHTML = `
                 <div class="company-info">
                     <img src="../../uploads/${company.profile_photo}" alt="${company.name} Logo" class="company-logo">
                     <div class="company-details">
-                        <h3>${company.name} ${removeIconHTML}</h3>
+                        <h3>${company.name}</h3>
                         <p>${company.type}</p>
                         ${statusHTML}
-                        <p><strong>OJT Requirements:</strong> ${company.ojt_requirements ? company.ojt_requirements : "Not specified"}</p>
-                        <p><strong>OJT Capacity:</strong> ${company.ojt_capacity ? company.ojt_capacity : "Not specified"}</p>
+                        <div>
+                            <strong>OJT Positions:</strong> ${compactPositions}
+                        </div>
+                        ${compactAccepted}
                     </div>
                 </div>
                 <div class="company-actions">
-                    <button class="view-info-button" data-id="${companyId}" data-email="${companyEmail}">View Info</button>
-                    <button class="goto-location-button" data-lat="${company.lat}" data-lng="${company.lng}">Go to Location</button>
-                    ${
-                        // Only show Apply button if the student is NOT accepted in any company
-                        (!acceptedCompanyId)
-                        ? `<button class="apply-button" data-id="${companyId}" data-email="${companyEmail}">Apply</button>`
-                        : ""
-                    }
+                    <button class="apply-button" ${acceptedCompanyId ? 'disabled title="You are already accepted in a company"' : `data-id="${companyId}" data-email="${companyEmail}"`}>Apply</button>
+                    <button class="view-info-button" data-id="${companyId}" data-email="${companyEmail}">Details</button>
+                    <button class="contact-company-button" data-email="${companyEmail}" title="Contact via Email">
+                        <span class="material-icons" aria-hidden="true">email</span>
+                        <span class="sr-only">Contact Company</span>
+                    </button>
+                    <button class="goto-location-button" data-lat="${company.lat}" data-lng="${company.lng}" title="View Location">
+                        <span class="material-icons" aria-hidden="true">location_on</span>
+                        <span class="sr-only">Go to Location</span>
+                    </button>
                 </div>
             `;
 
@@ -164,6 +284,25 @@ async function loadCompanies() {
             companiesList.prepend(acceptedCompanyCard);
             companiesList.prepend(acceptedHeader);
         }
+
+        // After rendering 10 companies:
+        if (querySnapshot.docs.length > 10) {
+            const showMoreBtn = document.createElement("button");
+            showMoreBtn.textContent = "Show More";
+            showMoreBtn.classList.add("show-more-btn");
+            showMoreBtn.onclick = () => {
+                // Remove the button
+                showMoreBtn.remove();
+                // Show the next set of companies
+                const nextCompanies = querySnapshot.docs.slice(10);
+                nextCompanies.forEach(docSnap => {
+                    const company = docSnap.data();
+                    const companyId = docSnap.id;
+                    // (Reuse the companyCard creation logic here)
+                });
+            };
+            companiesList.appendChild(showMoreBtn);
+        }
     } catch (error) {
         console.error("Error fetching companies:", error);
     }
@@ -188,6 +327,31 @@ function openModal(modalElement) {
 
 function closeModalWindow(modalElement) {
     modalElement.style.display = "none";
+}
+
+// Trap focus in modal
+function trapFocus(modal) {
+    const focusableEls = modal.querySelectorAll('a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
+    const firstEl = focusableEls[0];
+    const lastEl = focusableEls[focusableEls.length - 1];
+    modal.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) { // shift + tab
+                if (document.activeElement === firstEl) {
+                    lastEl.focus();
+                    e.preventDefault();
+                }
+            } else { // tab
+                if (document.activeElement === lastEl) {
+                    firstEl.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+        if (e.key === 'Escape') {
+            modal.style.display = "none";
+        }
+    });
 }
 
 // --- Show Company Info Modal ---
@@ -246,6 +410,28 @@ function showCompanyDetails(companyId) {
                     businessProofPdf.style.display = "none";
                 }
 
+                const ojtPositionsList = document.getElementById("ojt-positions-list");
+                if (ojtPositionsList) {
+                    if (company.ojt_positions && Array.isArray(company.ojt_positions) && company.ojt_positions.length > 0) {
+                        ojtPositionsList.innerHTML = `
+                            <ul class="company-positions-list">
+                                ${company.ojt_positions.map(pos => `
+                                    <li style="margin-bottom:18px;">
+                                        <strong>${pos.title || "Position"}</strong>
+                                        ${pos.desc ? `<br><span style="color:#555;">${pos.desc}</span>` : ""}
+                                        <br><span style="color:#1976d2;">Slots:</span> ${pos.slots || 1}
+                                        <br><span style="color:#1976d2;">Skills:</span> ${pos.skills || "-"}
+                                        <br><span style="color:#1976d2;">Year:</span> ${(pos.yearLevels || []).join(", ") || "-"}
+                                        <br><span style="color:#1976d2;">Program:</span> ${(pos.programs || []).join(", ") || "-"}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    } else {
+                        ojtPositionsList.innerHTML = `<p style="color:#888;">No OJT positions listed.</p>`;
+                    }
+                }
+
                 openModal(modal);
             } else {
                 console.log("No such document!");
@@ -273,8 +459,19 @@ document.addEventListener("click", async function (event) {
         showCompanyDetails(companyId);
     }
 
+    // When opening the apply modal
     if (target.classList.contains("apply-button")) {
         selectedCompanyEmail = target.getAttribute("data-email");
+        const companyId = target.getAttribute("data-id");
+        // Find the company object
+        const companyObj = allCompanies.find(c => c.companyId === companyId)?.company;
+        const roleSelect = document.getElementById('apply-role');
+        if (roleSelect && companyObj && Array.isArray(companyObj.ojt_positions)) {
+            roleSelect.innerHTML = '<option value="">-- Select Position --</option>' +
+                companyObj.ojt_positions.map(pos =>
+                    `<option value="${pos.title}">${pos.title}</option>`
+                ).join('');
+        }
         openModal(applyModal);
     }
 
@@ -297,11 +494,66 @@ document.addEventListener("click", async function (event) {
                 const appDocRef = doc(db, "companies", companyId, "applications", appDocId);
                 await updateDoc(appDocRef, { status: "pending" });
                 alert("You have been removed from the accepted company.");
-                loadCompanies();
+                
             }
         }
     }
+
+    if (target.classList.contains("contact-company-button")) {
+        const email = target.getAttribute("data-email");
+        window.location.href = `mailto:${email}`;
+    }
+
+    if (event.target.classList.contains("view-all-students")) {
+        const companyId = event.target.getAttribute("data-id");
+        // Fetch all accepted students for this company
+        const applicationsCollection = collection(db, "companies", companyId, "applications");
+        const acceptedQuery = query(applicationsCollection, where("status", "==", "accepted"));
+        const acceptedRes = await getDocs(acceptedQuery);
+        let html = "<h3>All Students Currently Working Here</h3><div style='display:flex;flex-wrap:wrap;gap:12px;'>";
+        acceptedRes.forEach(doc => {
+            const d = doc.data();
+            const photo = d.profile_photo && d.profile_photo !== "default-profile.png"
+                ? d.profile_photo
+                : "../img/sample-profile.jpg";
+            html += `<div style="text-align:center;">
+                <img src="${photo}" alt="${d.firstName || ""} ${d.lastName || ""}" class="student-avatar">
+                <div style="font-size:0.95em;">${d.firstName || ""} ${d.lastName || ""}</div>
+                <div style="font-size:0.85em;color:#888;">${d.student_email}</div>
+            </div>`;
+        });
+        html += "</div>";
+        showSimpleModal(html);
+    }
 });
+
+// Simple modal function (add to your JS)
+function showSimpleModal(content) {
+    let modal = document.getElementById("simple-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "simple-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100vw";
+        modal.style.height = "100vh";
+        modal.style.background = "rgba(0,0,0,0.4)";
+        modal.style.display = "flex";
+        modal.style.alignItems = "center";
+        modal.style.justifyContent = "center";
+        modal.innerHTML = `<div style="background:#fff;padding:24px 32px;border-radius:10px;max-width:90vw;max-height:80vh;overflow:auto;position:relative;">
+            <span id="close-simple-modal" style="position:absolute;top:8px;right:16px;cursor:pointer;font-size:22px;">&times;</span>
+            <div id="simple-modal-content"></div>
+        </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener("click", e => {
+            if (e.target.id === "simple-modal" || e.target.id === "close-simple-modal") modal.style.display = "none";
+        });
+    }
+    document.getElementById("simple-modal-content").innerHTML = content;
+    modal.style.display = "flex";
+}
 
 // Modal button: Go to Location
 document.body.addEventListener("click", function(event) {
@@ -394,6 +646,7 @@ applyForm.addEventListener('submit', async function (e) {
                 middleName: studentData.middleName || "",
                 resume_filename: data.resume_filename,
                 status: "pending",
+                applied_role: document.getElementById('apply-role').value || "",
                 uploaded_at: serverTimestamp()
             });
 
@@ -550,7 +803,6 @@ const companyModalHTML = `
             <p id="company-type"></p>
         </div>
         <div class="modal-body">
-            <img id="company-logo" class="modal-logo" alt="Company Logo">
             <p id="company-description"></p>
             <p><strong>Contact Email:</strong> <span id="company-email"></span></p>
             <p><strong>Location:</strong> <span id="company-location"></span></p>
@@ -559,6 +811,10 @@ const companyModalHTML = `
                 <h3>Business Proof</h3>
                 <img id="business-proof-image" class="business-proof" alt="Business Proof" style="display: none;">
                 <iframe id="business-proof-pdf" class="business-proof" style="display: none;" width="100%" height="500px"></iframe>
+            </div>
+            <div id="ojt-positions-modal-section" style="margin-top:24px;">
+                <h3>OJT Positions</h3>
+                <div id="ojt-positions-list"></div>
             </div>
         </div>
         <div class="modal-footer">

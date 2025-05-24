@@ -12,7 +12,7 @@
 <!-- Leaflet MarkerCluster CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -76,16 +76,21 @@
                 <p id="company-type"></p>
             </div>
         </div>
-        <div class="modal-body">
-            <p id="company-description"></p>
-            <p><strong>Contact Email:</strong> <span id="company-email"></span></p>
-            <p><strong>Open for OJT:</strong> <span id="company-ojt-status"></span></p>
-            <div class="business-proof-container">
-                <h3>Business Proof</h3>
-                <img id="business-proof-image" class="business-proof" alt="Business Proof" style="display: none;">
-                <iframe id="business-proof-pdf" class="business-proof" style="display: none;" frameborder="0"></iframe>
-            </div>
-        </div>
+<div class="modal-body">
+    <p id="company-description"></p>
+    <p><strong>Contact Email:</strong> <span id="company-email"></span></p>
+    <p><strong>Location:</strong> <span id="company-location"></span></p>
+    <p><strong>Open for OJT:</strong> <span id="company-ojt-status"></span></p>
+    <div class="business-proof-container">
+        <h3>Business Proof</h3>
+        <img id="business-proof-image" class="business-proof" alt="Business Proof" style="display: none;">
+        <iframe id="business-proof-pdf" class="business-proof" style="display: none;" width="100%" height="500px"></iframe>
+    </div>
+    <div id="ojt-positions-modal-section" style="margin-top:24px;">
+        <h3>OJT Positions</h3>
+        <div id="ojt-positions-list"></div>
+    </div>
+</div>
         <div class="modal-footer">
             <button id="apply-button-modal" style="display: none;">Apply</button>
             <button id="goto-location-modal-btn">Go to Location</button>
@@ -99,6 +104,13 @@
             <span id="close-apply-modal" class="close">&times;</span>
             <h2>Upload Your Resume</h2>
             <form id="apply-form">
+                <!-- New Role/Position Selection -->
+                <label for="apply-role" style="font-weight:500;">Select Role/Position:</label>
+                <select id="apply-role" name="apply-role" required style="margin-bottom:10px;width:100%;padding:6px;border-radius:5px;">
+                    <option value="">-- Select Position --</option>
+                    <!-- JS will populate options -->
+                </select>
+                <br>
                 <input type="file" id="resume-input" name="resume" accept=".pdf,.doc,.docx" required>
                 <br><br>
                 <button type="submit">Submit Resume</button>
