@@ -37,138 +37,226 @@ let currentPage = 1;
 let totalPages = 1;
 let allApplicants = [];
 let attendanceMapGlobal = {};
+let emailToStudentData = {}; // <-- Make this global
 
 // Helper to render applicants
+function renderProgressCircle(current, total, color = "#1976d2", label = "OJT Progress", completed = false) {
+    const percent = Math.min(100, (current / total) * 100);
+    return `
+    <div class="progress-circle${completed ? ' completed' : ''}" title="${label}: ${current.toFixed(2)}/${total}h (${Math.round(percent)}%)">
+        <svg width="70" height="70" aria-label="${label}">
+            <circle cx="35" cy="35" r="30" stroke="#eee" stroke-width="7" fill="none"/>
+            <circle cx="35" cy="35" r="30" stroke="${color}" stroke-width="7" fill="none"
+                stroke-dasharray="${2 * Math.PI * 30}"
+                stroke-dashoffset="${2 * Math.PI * 30 * (1 - percent / 100)}"
+                style="transition:stroke-dashoffset 0.6s;"/>
+        </svg>
+        <div class="progress-text">
+            ${current.toFixed(2)}/${total}h
+            <br>
+            <span style="font-size:0.85em;color:#888;">${Math.round(percent)}%</span>
+        </div>
+    </div>
+    `;
+}
+
+function sanitize(str) {
+    return String(str).replace(/[<>&'"]/g, c => ({
+        '<':'&lt;','>':'&gt;','&':'&amp;','\'':'&#39;','"':'&quot;'
+    }[c]));
+}
+
 function renderApplicants(applicants, attendanceMap, page = 1) {
     const section = document.getElementById("accepted-applicants-section");
     if (!section) return;
 
-    // Pagination logic
-    totalPages = Math.ceil(applicants.length / APPLICANTS_PER_PAGE);
-    currentPage = Math.max(1, Math.min(page, totalPages));
-    const startIdx = (currentPage - 1) * APPLICANTS_PER_PAGE;
-    const endIdx = startIdx + APPLICANTS_PER_PAGE;
-    const paginatedApplicants = applicants.slice(startIdx, endIdx);
+    // Loading spinner
+    section.innerHTML = `<div class="loading-spinner"></div>`;
 
-    section.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-            <h2>On The Job Trainees</h2>
-            <div style="display:flex;align-items:center;gap:18px;">
-                <span class="scan-animate-text">Scan for attendance here</span>
-                <button id="scan-btn" title="Scan Attendance" style="background:none;border:none;cursor:pointer;">
-                    <img src="../img/scan-icon.png" alt="Scan" style="width:36px;height:36px;">
-                </button>
+    setTimeout(() => { // Simulate loading for UX polish
+        // Pagination logic
+        totalPages = Math.ceil(applicants.length / APPLICANTS_PER_PAGE);
+        currentPage = Math.max(1, Math.min(page, totalPages));
+        const startIdx = (currentPage - 1) * APPLICANTS_PER_PAGE;
+        const endIdx = startIdx + APPLICANTS_PER_PAGE;
+        const paginatedApplicants = applicants.slice(startIdx, endIdx);
+
+        // Search/filter UI (future feature)
+        const filterHtml = `
+            <input type="text" id="search-applicant" placeholder="Search by name or email..." style="margin-bottom:12px;padding:6px 12px;width:60%;max-width:300px;">
+            <button id="export-csv-btn" aria-label="Export CSV" style="margin-left:8px;">Export CSV</button>
+        `;
+
+        section.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <h2>On The Job Trainees</h2>
+                <div style="display:flex;align-items:center;gap:18px;">
+                    <span class="scan-animate-text">Scan for attendance here</span>
+                    <button id="scan-btn" title="Scan Attendance" aria-label="Scan Attendance" style="background:none;border:none;cursor:pointer;">
+                        <img src="../img/scan-icon.png" alt="Scan" style="width:36px;height:36px;">
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="applicant-cards">
-            ${paginatedApplicants.map(app => {
-                // Get Manila date string (YYYY-MM-DD) for today
+            ${filterHtml}
+            <div class="applicant-cards">
+                ${paginatedApplicants.length === 0 ? `<div class="no-applicants">No applicants found.</div>` : paginatedApplicants.map(app => {
+                    // Get Manila date string (YYYY-MM-DD) for today
+                    const now = new Date();
+                    const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+                    const manilaDate = manilaNow.toISOString().split("T")[0];
+
+                    const records = attendanceMap[app.student_email?.toLowerCase()] || [];
+                    const todayRecord = records.find(r => r.date === manilaDate);
+
+                    let status = "";
+                    let statusClass = "";
+                    if (todayRecord && todayRecord.checkedIn && !todayRecord.checkedOut) {
+                        status = "On working";
+                        statusClass = "on-working";
+                    } else if (todayRecord && todayRecord.checkedIn && todayRecord.checkedOut) {
+                        status = "Workday Finished";
+                        statusClass = "completed";
+                    } else if (todayRecord && todayRecord.checkedIn === null) {
+                        status = "Not Checked In";
+                        statusClass = "reset";
+                    } else {
+                        status = "Not Checked In";
+                        statusClass = "reset";
+                    }
+
+                    // Fetch student's OJT hours
+                    const studentData = emailToStudentData[app.student_email?.toLowerCase()] || {};
+                    const ojtHours = studentData["OJT-Hours"] || null;
+                    const ojtHoursExtend = studentData["OJT-Hours-Extend"] || null;
+
+                    // Sum all attendance durations for this student
+                    let totalHours = 0;
+                    records.forEach(r => {
+                        if (typeof r.duration === "number") totalHours += r.duration;
+                    });
+
+                    // Progress circles
+                    let progressCircleHtml = "";
+                    let completedBadge = "";
+                    if (!ojtHours) {
+                        progressCircleHtml = `<div style="color:#888;font-size:0.95em;">Not Approved Yet</div>`;
+                    } else {
+                        const completed = totalHours >= ojtHours;
+                        progressCircleHtml = renderProgressCircle(totalHours, ojtHours, "#1976d2", "OJT Progress", completed);
+                        if (completed) {
+                            completedBadge = `<span class="completed-badge" aria-label="OJT Completed">Completed</span>`;
+                        }
+                        if (ojtHoursExtend) {
+                            // For now, community service is not tracked separately, so always 0
+                            progressCircleHtml += renderProgressCircle(0, ojtHoursExtend, "#43a047", "Community Service Progress");
+                        }
+                    }
+
+                    return `
+                    <div class="applicant-card" tabindex="0" aria-label="Applicant Card">
+                        <img class="applicant-photo" src="${sanitize(app.profile_pic)}" alt="Profile Photo of ${sanitize(app.lastName)}, ${sanitize(app.firstName)}" />
+                        <div class="applicant-name">
+                            <strong>${sanitize(app.lastName)}, ${sanitize(app.firstName)} ${sanitize(app.middleName || "")}</strong>
+                            ${completedBadge}
+                        </div>
+                        <div class="applicant-email">${sanitize(app.student_email)}</div>
+                        ${progressCircleHtml}
+                        <div class="applicant-status ${statusClass}">${status}</div>
+                        ${(todayRecord && todayRecord.checkedIn !== null) ? `
+                            <button class="reset-btn" data-email="${sanitize(app.student_email)}" data-status="${status}" aria-label="Reset today's attendance for ${sanitize(app.firstName)}">Reset</button>
+                        ` : ""}
+                    </div>
+                    `;
+                }).join("")}
+            </div>
+            <div class="pagination-controls" style="text-align:center;margin-top:18px;">
+                <button id="prev-page" ${currentPage === 1 ? "disabled" : ""}>Prev</button>
+                <span>Page ${currentPage} of ${totalPages}</span>
+                <button id="next-page" ${currentPage === totalPages ? "disabled" : ""}>Next</button>
+            </div>
+        `;
+
+        // Scan button handler
+        document.getElementById("scan-btn").onclick = () => {
+            window.location.href = "company-capture.html";
+        };
+
+        // Pagination handlers
+        document.getElementById("prev-page").onclick = () => renderApplicants(allApplicants, attendanceMapGlobal, currentPage - 1);
+        document.getElementById("next-page").onclick = () => renderApplicants(allApplicants, attendanceMapGlobal, currentPage + 1);
+
+        // Reset button handlers (reset only today's attendance)
+        section.querySelectorAll(".reset-btn").forEach(btn => {
+            btn.onclick = async function () {
+                const email = btn.dataset.email;
+                const status = btn.dataset.status;
+                const companyId = auth.currentUser ? auth.currentUser.uid : null;
+                if (!companyId) return showToast("Company not authenticated!");
+
+                // Get Manila date string (YYYY-MM-DD)
                 const now = new Date();
                 const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
                 const manilaDate = manilaNow.toISOString().split("T")[0];
 
-                // Attendance is now a subcollection: attendance/{student_email}/records/{autoDocId}
-                // So attendanceMap[student_email] is an array of records for that student
-                const records = attendanceMap[app.student_email?.toLowerCase()] || [];
-                // Find today's record (if any)
-                const todayRecord = records.find(r => r.date === manilaDate);
+                // Find today's attendance record for this student
+                const recordsCol = collection(db, "companies", companyId, "attendance", email, "records");
+                const q = query(recordsCol, where("date", "==", manilaDate));
+                const recordsSnap = await getDocs(q);
 
-                let status = "";
-                let statusClass = "";
-                if (todayRecord && todayRecord.checkedIn && !todayRecord.checkedOut) {
-                    status = "On working";
-                    statusClass = "on-working";
-                } else if (todayRecord && todayRecord.checkedIn && todayRecord.checkedOut) {
-                    status = "Workday Finished";
-                    statusClass = "completed";
-                } else if (todayRecord && todayRecord.checkedIn === null) {
-                    status = "Not Checked In";
-                    statusClass = "reset";
-                } else {
-                    status = "Not Checked In";
-                    statusClass = "reset";
+                if (recordsSnap.empty) {
+                    showToast("No attendance to reset for today.");
+                    return;
                 }
 
-                return `
-                <div class="applicant-card">
-                    <img class="applicant-photo" src="${app.profile_pic}" alt="Profile Photo" />
-                    <div class="applicant-name">
-                        <strong>${app.lastName}, ${app.firstName} ${app.middleName || ""}</strong>
-                    </div>
-                    <div class="applicant-email">${app.student_email}</div>
-                    <div class="applicant-status ${statusClass}">${status}</div>
-                    ${(todayRecord && todayRecord.checkedIn !== null) ? `
-                        <button class="reset-btn" data-email="${app.student_email}" data-status="${status}">Reset</button>
-                    ` : ""}
-                </div>
-                `;
-            }).join("")}
-        </div>
-        <div class="pagination-controls" style="text-align:center;margin-top:18px;">
-            <button id="prev-page" ${currentPage === 1 ? "disabled" : ""}>Prev</button>
-            <span>Page ${currentPage} of ${totalPages}</span>
-            <button id="next-page" ${currentPage === totalPages ? "disabled" : ""}>Next</button>
-        </div>
-    `;
+                // Only reset the latest record for today (if multiple, reset the last one)
+                let latestDoc = null;
+                recordsSnap.forEach(docSnap => {
+                    if (!latestDoc || docSnap.data().checkedIn > latestDoc.data().checkedIn) {
+                        latestDoc = docSnap;
+                    }
+                });
 
-    // Scan button handler
-    document.getElementById("scan-btn").onclick = () => {
-        window.location.href = "company-capture.html";
-    };
-
-    // Pagination handlers
-    document.getElementById("prev-page").onclick = () => renderApplicants(allApplicants, attendanceMapGlobal, currentPage - 1);
-    document.getElementById("next-page").onclick = () => renderApplicants(allApplicants, attendanceMapGlobal, currentPage + 1);
-
-    // Reset button handlers (reset only today's attendance)
-    section.querySelectorAll(".reset-btn").forEach(btn => {
-        btn.onclick = async function () {
-            const email = btn.dataset.email;
-            const status = btn.dataset.status;
-            const companyId = auth.currentUser ? auth.currentUser.uid : null;
-            if (!companyId) return showToast("Company not authenticated!");
-
-            // Get Manila date string (YYYY-MM-DD)
-            const now = new Date();
-            const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-            const manilaDate = manilaNow.toISOString().split("T")[0];
-
-            // Find today's attendance record for this student
-            const recordsCol = collection(db, "companies", companyId, "attendance", email, "records");
-            const q = query(recordsCol, where("date", "==", manilaDate));
-            const recordsSnap = await getDocs(q);
-
-            if (recordsSnap.empty) {
-                showToast("No attendance to reset for today.");
-                return;
-            }
-
-            // Only reset the latest record for today (if multiple, reset the last one)
-            let latestDoc = null;
-            recordsSnap.forEach(docSnap => {
-                if (!latestDoc || docSnap.data().checkedIn > latestDoc.data().checkedIn) {
-                    latestDoc = docSnap;
+                if (!latestDoc) {
+                    showToast("No attendance to reset for today.");
+                    return;
                 }
-            });
 
-            if (!latestDoc) {
-                showToast("No attendance to reset for today.");
-                return;
-            }
+                if (status === "Workday Finished") {
+                    if (!confirm("This applicant has already checked out today. Are you sure you want to reset their attendance for today?")) return;
+                }
+                // Reset only today's latest attendance (remove checkedIn, checkedOut, duration)
+                await updateDoc(doc(recordsCol, latestDoc.id), {
+                    checkedIn: null,
+                    checkedOut: null,
+                    duration: null
+                });
+                showToast("Today's attendance reset!");
+                setTimeout(() => window.location.reload(), 1200);
+            };
+        });
 
-            if (status === "Workday Finished") {
-                if (!confirm("This applicant has already checked out today. Are you sure you want to reset their attendance for today?")) return;
-            }
-            // Reset only today's latest attendance (remove checkedIn, checkedOut, duration)
-            await updateDoc(doc(recordsCol, latestDoc.id), {
-                checkedIn: null,
-                checkedOut: null,
-                duration: null
-            });
-            showToast("Today's attendance reset!");
-            setTimeout(() => window.location.reload(), 1200);
+        // Search/filter handler (future feature)
+        const searchInput = document.getElementById("search-applicant");
+        if (searchInput) {
+            searchInput.value = window.lastSearchValue || "";
+            searchInput.oninput = debounce(function (e) {
+                window.lastSearchValue = e.target.value;
+                const val = e.target.value.toLowerCase();
+                const filtered = allApplicants.filter(app =>
+                    (app.firstName && app.firstName.toLowerCase().includes(val)) ||
+                    (app.lastName && app.lastName.toLowerCase().includes(val)) ||
+                    (app.student_email && app.student_email.toLowerCase().includes(val))
+                );
+                renderApplicants(filtered, attendanceMapGlobal, 1);
+            }, 300); // 300ms debounce
+        }
+
+        // Export CSV handler (future feature)
+        document.getElementById("export-csv-btn").onclick = function () {
+            exportAttendanceToCSV(allApplicants, attendanceMapGlobal);
+            showToast("Attendance exported!");
         };
-    });
+    }, 400); // Simulate loading
 }
 
 // Toast notification helper
@@ -189,6 +277,37 @@ function showToast(message, duration = 2500) {
     setTimeout(() => {
         toast.remove();
     }, duration);
+}
+
+// Add this helper function in company-dashboard.js
+function exportAttendanceToCSV(applicants, attendanceMap) {
+    let csv = "Name,Email,Date,Checked In,Checked Out,Duration (hours)\n";
+    applicants.forEach(app => {
+        const email = app.student_email?.toLowerCase();
+        const records = attendanceMap[email] || [];
+        records.forEach(r => {
+            csv += `"${app.lastName}, ${app.firstName}","${app.student_email}","${r.date || ""}","${r.checkedIn || ""}","${r.checkedOut || ""}","${typeof r.duration === "number" ? r.duration.toFixed(2) : ""}"\n`;
+        });
+    });
+    // Download as CSV
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "attendance.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Debounce helper
+function debounce(fn, delay) {
+    let timer = null;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
 }
 
 // Fetch and display applicants for the logged-in company
@@ -236,9 +355,18 @@ onAuthStateChanged(auth, async user => {
         });
     }
 
+    // Fetch all students data for OJT hours mapping
+    emailToStudentData = {}; // <-- Assign to global
+    studentsSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.email) {
+            emailToStudentData[data.email.toLowerCase()] = data;
+        }
+    });
+
     // Store globally for pagination
     allApplicants = applicants;
     attendanceMapGlobal = attendanceMap;
 
-    renderApplicants(applicants, attendanceMap, 1);
+    renderApplicants(applicants, attendanceMap, 1); // <-- Now emailToStudentData is available
 });

@@ -30,6 +30,11 @@ section {
     flex-direction: column;
     align-items: flex-start;
     border-left: 5px solid #4caf50;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.applicant-card:hover {
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15);
+    transform: translateY(-2px) scale(1.01);
 }
 .applicant-card .applicant-name {
     font-size: 1.1em;
@@ -150,4 +155,54 @@ section {
     transform: scale(1.18) rotate(-8deg);
     box-shadow: 0 4px 16px rgba(25, 118, 210, 0.18);
     cursor: pointer;
+}
+
+/* Progress Circle */
+.progress-circle {
+    width: 70px;
+    height: 70px;
+    position: relative;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+.progress-circle svg {
+    transform: rotate(-90deg);
+}
+.progress-circle .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1em;
+    font-weight: bold;
+    color: #1976d2;
+    text-align: center;
+    width: 100%;
+}
+.progress-circle.completed .progress-text {
+    color: #43a047;
+}
+.loading-spinner {
+    border: 4px solid #eee;
+    border-top: 4px solid #1976d2;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+    margin: 40px auto;
+    display: block;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+}
+@media (max-width: 600px) {
+    .applicant-cards {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .applicant-card {
+        min-width: unset;
+        width: 100%;
+    }
 }

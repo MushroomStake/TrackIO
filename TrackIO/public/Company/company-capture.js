@@ -160,12 +160,15 @@ async function handleScan(qrText) {
             const diffHours = diffMs / (1000 * 60 * 60);
             let duration, durationStr;
             if (diffHours < 1) {
-                const diffMinutes = Math.round((diffMs / (1000 * 60)) * 10) / 10;
-                duration = diffMinutes;
-                durationStr = `${duration} minute${duration === 1 ? "" : "s"}`;
+                // Always show as 0.HH format if less than 1 hour
+                const minutes = Math.floor(diffMs / (1000 * 60));
+                duration = Math.round((minutes / 60) * 100) / 100; // decimal hours
+                durationStr = `0h ${minutes}m`;
             } else {
+                const hours = Math.floor(diffHours);
+                const minutes = Math.floor((diffHours - hours) * 60);
                 duration = Math.round(diffHours * 100) / 100;
-                durationStr = `${duration} hour${duration === 1 ? "" : "s"}`;
+                durationStr = `${hours}h ${minutes}m`;
             }
             await updateDoc(doc(studentAttendanceCol, openRecord.id), {
                 checkedOut: nowISO,
