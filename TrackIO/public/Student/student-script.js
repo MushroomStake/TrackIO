@@ -150,6 +150,7 @@ let companyGeofences = [];
 
 // Function to fetch the location name using reverse geocoding
 async function fetchLocationName(latitude, longitude) {
+     showLoading(true);
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
 
     try {
@@ -163,16 +164,19 @@ async function fetchLocationName(latitude, longitude) {
         console.error("Error fetching location name:", error);
         return "Unknown Location";
     }
+    showLoading(false);
 }
 
 // Function to initialize or update the map
 function initializeMap(latitude, longitude, firstName, lastName, locationName, profilePicPath) {
     if (!map) {
-        // Initialize the map if it doesn't exist
-        map = L.map('map').setView([latitude, longitude], 13); // Set initial view with zoom level 13
+        map = L.map('map', { zoomControl: false }).setView([latitude, longitude], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
         }).addTo(map);
+    } else {
+        // Always keep the map centered on the student's current location
+        map.setView([latitude, longitude], 15, { animate: true });
     }
 
     if (marker) {
@@ -234,6 +238,7 @@ function isStudentInsideAnyGeofence(studentLatLng) {
 console.log("Company geofences:", companyGeofences);
 
 async function displayCompanyLocationsOnMap() {
+     showLoading(true);
     try {
         const companiesSnapshot = await getDocs(collection(db, "companies"));
 
@@ -289,9 +294,8 @@ async function displayCompanyLocationsOnMap() {
 }
 
     displayCompanyLocationsOnMap();
-
+    showLoading(false);
 }
-
 
 // Function to update the user's location on the map and in Firestore
 async function updateLocation(position) {
@@ -549,16 +553,10 @@ window.addEventListener("beforeunload", () => {
 const logoutButton = document.getElementById('logout-button');
 if (logoutButton && window.location.pathname.includes('student-dashboard.html')) {
     logoutButton.addEventListener('click', async () => {
-        try {
-            await signOut(auth); // Sign out the user
-            console.log("User logged out successfully.");
-
-            stopRealTimeLocationTracking(); // Stop tracking on logout
-
-            window.location.href = './student-login.html'; // Redirect to the student login page
-        } catch (error) {
-            console.error("Error during logout:", error);
-        }
+        await signOut(auth);
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = './student-login.html';
     });
 }
 
@@ -567,6 +565,7 @@ const userNameElement = document.getElementById('user-name');
 const userEmailElement = document.getElementById('user-email');
 
 async function loadStudentProfile(user) {
+     showLoading(true);
     try {
         const studentDocRef = doc(db, "students", user.uid);
         const studentDoc = await getDoc(studentDocRef);
@@ -598,6 +597,7 @@ async function loadStudentProfile(user) {
         userNameElement.textContent = "Unknown User";
         userEmailElement.textContent = "Not Available";
     }
+    showLoading(false);
 }
 
 // Function to generate and display QR code for the student
@@ -659,3 +659,228 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "student-login.html";
     }
 });
+
+// Helper: Render Progress Circle
+function renderProgressCircle(current, total, color = "#1976d2", label = "OJT Progress") {
+    const percent = Math.min(100, (current / total) * 100);
+    return `
+        <div class="progress-circle" title="${label}: ${current.toFixed(2)}/${total}h (${Math.round(percent)}%)">
+            <svg width="70" height="70">
+                <circle cx="35" cy="35" r="30" stroke="#eee" stroke-width="7" fill="none"/>
+                <circle cx="35" cy="35" r="30" stroke="${color}" stroke-width="7" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 30}"
+                    stroke-dashoffset="${2 * Math.PI * 30 * (1 - percent / 100)}"
+                    style="transition:stroke-dashoffset 0.6s;"/>
+            </svg>
+            <div class="progress-text">
+                ${current.toFixed(2)}/${total}h
+                <br>
+                <span style="font-size:0.85em;color:#888;">${Math.round(percent)}%</span>
+            </div>
+        </div>
+    `;
+}
+
+// Fetch and display OJT progress
+async function displayStudentOJTProgress(user) {
+    showLoading(true);
+    const studentDoc = await getDoc(doc(db, "students", user.uid));
+    if (!studentDoc.exists()) return;
+    const studentData = studentDoc.data();
+    const ojtHours = studentData["OJT-Hours"] || 0;
+
+    // Sum durations from all companies
+    let totalRendered = 0;
+    const companiesSnap = await getDocs(collection(db, "companies"));
+    for (const companyDoc of companiesSnap.docs) {
+        const attendanceCol = collection(
+            db, "companies", companyDoc.id, "attendance", studentData.email, "records"
+        );
+        const attendanceSnap = await getDocs(attendanceCol);
+        attendanceSnap.forEach(r => {
+            if (typeof r.data().duration === "number") totalRendered += r.data().duration;
+        });
+    }
+
+    // Render in dashboard
+    const progressSection = document.getElementById("student-ojt-progress");
+    if (progressSection) {
+        progressSection.innerHTML = renderProgressCircle(totalRendered, ojtHours, "#1976d2", "OJT Progress");
+    }
+    showLoading(false);
+}
+
+// Call after auth
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        displayStudentOJTProgress(user);
+        // ...other calls...
+    }
+});
+
+async function getAttendanceEvents(user) {
+    const events = [];
+    const companiesSnap = await getDocs(collection(db, "companies"));
+    for (const companyDoc of companiesSnap.docs) {
+        const attendanceCol = collection(
+            db, "companies", companyDoc.id, "attendance", user.email, "records"
+        );
+        const attendanceSnap = await getDocs(attendanceCol);
+        attendanceSnap.forEach(r => {
+            const data = r.data();
+            if (!data.date) return;
+            if (data.checkedIn && data.checkedOut) {
+                events.push({
+                    title: "Work Done",
+                    start: data.date,
+                    color: "#43a047"
+                });
+            } else if (data.checkedIn && !data.checkedOut) {
+                events.push({
+                    title: "Working",
+                    start: data.date,
+                    color: "#fbc02d"
+                });
+            }
+        });
+    }
+    return events;
+}
+
+// In your calendar setup:
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const events = await getAttendanceEvents(user);
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: events
+        });
+        calendar.render();
+    }
+});
+
+// Show this in the map popup and on the dashboard
+async function displayAttendanceSummary(user) {
+    let totalHours = 0, daysWorked = 0, daysWorking = 0;
+    const companiesSnap = await getDocs(collection(db, "companies"));
+    for (const companyDoc of companiesSnap.docs) {
+        const attendanceCol = collection(db, "companies", companyDoc.id, "attendance", user.email, "records");
+        const attendanceSnap = await getDocs(attendanceCol);
+        attendanceSnap.forEach(r => {
+            const d = r.data();
+            if (typeof d.duration === "number") totalHours += d.duration;
+            if (d.checkedIn && d.checkedOut) {
+                daysWorked++;
+            } else if (d.checkedIn && !d.checkedOut) {
+                daysWorking++;
+            }
+        });
+    }
+    document.getElementById("attendance-summary").innerHTML = `
+        <strong>Total OJT Hours:</strong> ${totalHours.toFixed(2)}<br>
+        <strong>Days Worked:</strong> ${daysWorked}<br>
+        <strong>Currently Working Days:</strong> ${daysWorking}
+    `;
+}
+onAuthStateChanged(auth, user => { if (user) displayAttendanceSummary(user); });
+
+function showReminder(message) {
+    let toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+function displayProfileCompletion(studentData) {
+    let filled = 0, total = 4;
+    let missing = [];
+    if (studentData.firstName) filled++; else missing.push("First Name");
+    if (studentData.lastName) filled++; else missing.push("Last Name");
+    if (studentData.profile_pic) filled++; else missing.push("Profile Picture");
+    if (studentData.contactNumber) filled++; else missing.push("Contact Number");
+    const percent = Math.round((filled / total) * 100);
+    document.getElementById("profile-completion").innerHTML = `
+        <div style="margin:10px 0;">
+            <strong>Profile Completion:</strong>
+            <div style="background:#eee;border-radius:8px;width:100%;height:14px;overflow:hidden;">
+                <div style="background:#1976d2;width:${percent}%;height:100%;"></div>
+            </div>
+            <span>${percent}%</span>
+            ${missing.length ? `<div style="color:#d32f2f;font-size:0.95em;">Missing: ${missing.join(", ")}</div>` : ""}
+        </div>
+    `;
+}
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const studentDoc = await getDoc(doc(db, "students", user.uid));
+        if (studentDoc.exists()) displayProfileCompletion(studentDoc.data());
+    }
+});
+
+async function displayTodayStatus(user) {
+    // Get today's date in YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    let checkedIn = false, checkedOut = false, isInsideGeofence = false;
+
+    // Fetch attendance for today from all companies
+    const companiesSnap = await getDocs(collection(db, "companies"));
+    for (const companyDoc of companiesSnap.docs) {
+        const attendanceCol = collection(
+            db, "companies", companyDoc.id, "attendance", user.email, "records"
+        );
+        const attendanceSnap = await getDocs(attendanceCol);
+        attendanceSnap.forEach(r => {
+            const data = r.data();
+            if (data.date === today) {
+                if (data.checkedIn) checkedIn = true;
+                if (data.checkedOut) checkedOut = true;
+            }
+        });
+    }
+
+    // Check geofence status (reuse your function or set from last location update)
+    // Example: if you store last geofence status in localStorage/session or a global variable
+    if (typeof window.lastIsInsideGeofence === "boolean") {
+        isInsideGeofence = window.lastIsInsideGeofence;
+    }
+
+    let todayStatus = "Not Working";
+    if (checkedIn && checkedOut) {
+        todayStatus = "Work Done";
+    } else if (checkedIn && isInsideGeofence) {
+        todayStatus = "🟢 Working";
+    } else if (checkedIn && !isInsideGeofence) {
+        todayStatus = "🟡 Checked In (Out of Area)";
+    } else {
+        todayStatus = "🔴 Not Working";
+    }
+
+    // Display on dashboard (add an element with id="today-status" in your HTML)
+    const statusEl = document.getElementById("today-status");
+    let badgeClass = "status-red";
+    if (checkedIn && checkedOut) badgeClass = "status-green";
+    else if (checkedIn && isInsideGeofence) badgeClass = "status-green";
+    else if (checkedIn && !isInsideGeofence) badgeClass = "status-yellow";
+
+    if (statusEl) statusEl.innerHTML = `<strong>Status Today:</strong> <span class="status-badge ${badgeClass}">${todayStatus}</span>`;
+
+    // Show reminder if not checked in
+    if (!checkedIn && !localStorage.getItem("reminderShown_" + today)) {
+        showReminder("Don't forget to check in for your OJT today!");
+        localStorage.setItem("reminderShown_" + today, "1");
+    }
+}
+
+// Call after auth
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        displayTodayStatus(user);
+    }
+});
+
+
+function showLoading(show) {
+    document.getElementById("loading-spinner").style.display = show ? "block" : "none";
+}
