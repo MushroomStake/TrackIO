@@ -11,7 +11,34 @@ body {
   background: linear-gradient(to bottom, #ffffff 80%, #b3e5fc); /* 80% white, 20% light blue/cyan */
   position: relative;
 }
-
+ .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 8px;
+      position: relative;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
+    }
 /* Email display styling */
 .email-display {
   background-color: #f0f0f0;
@@ -220,7 +247,6 @@ body {
   display: none;
 }
 
-/* Logo styling - Responsive */
 .logo {
   display: flex;
   justify-content: center;
@@ -230,24 +256,25 @@ body {
 
 .logo-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  flex-direction: row;       
+  align-items: center;       
+  gap: 15px;               
 }
 
 .main-logo {
   width: 180px;
   height: auto;
-  max-height: 90px;
+  max-height: 100px;
   object-fit: contain;
 }
 
 .secondary-logo {
-  width: 130px;
+  width: 120px;
   height: auto;
-  max-height: 70px;
+  max-height: 100px;
   object-fit: contain;
 }
+
 
 /* Logo icon styling */
 .logo-icon {

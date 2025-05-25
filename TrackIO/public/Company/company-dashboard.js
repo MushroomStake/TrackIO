@@ -370,3 +370,16 @@ onAuthStateChanged(auth, async user => {
 
     renderApplicants(applicants, attendanceMap, 1); // <-- Now emailToStudentData is available
 });
+
+// Logout functionality
+const logoutBtn = document.getElementById("logout-button");
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+        try {
+            await signOut(auth);
+            window.location.href = "company-index.html";
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    });
+}

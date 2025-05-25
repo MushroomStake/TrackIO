@@ -27,7 +27,7 @@
                             </a>
                                 <a href="../Teacher/Teacher-login.html" aria-label="Faculty Login">
                                     <img src="../img/faculty-icon.png" alt="Faculty Logo" class="logo-icon">
-                                     <span>Faculty</span>
+                                     <span>Coordinator</span>
                                 </a>      
                 </div>
             </div>
@@ -41,7 +41,7 @@
         <div class="form-container" id="form-container">
         <!-- Login Form -->
         <div id="login-form-container">
-            <h2>Faculty Login</h2>
+            <h2>Coordinator Login</h2>
             <form id="loginForm">
                 <div class="email-input-container">
                     <input type="text" id="lUsername" placeholder="Email" required />
@@ -54,14 +54,20 @@
                 <input type="password" id="lPassword" placeholder="Password" required />
                 <button type="submit" id="submitLogin">Login</button>
                 <div id="loginMessage" style="display: none;"></div>
-                <p>Don't have an account?</p>
-                <a href="Teacher-register.html" id="show-login">Register</a>
             </form>
 
             </div>
           
         </div>
     </div>
+    <!-- App Short Description-->
+             <div class="app-description" style="text-align:center; max-width: 500px; margin: 0 auto 20px auto; padding: 0 15px;">
+                  <p style="font-size: 14px; color: #444;">
+                     <strong>TrackIO</strong> is a streamlined OJT (On-the-Job Training) tracker designed for Gordon College students, companies, and faculty. 
+                     It helps monitor work hours, manage evaluations, and ensure smooth collaboration between students and their training partners. 
+                     Log in to access your personalized dashboard and start tracking your progress today.
+                 </p>
+            </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent default form submission
