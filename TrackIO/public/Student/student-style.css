@@ -105,18 +105,20 @@ body {
 /* Calendar Section */
 #calendar-container {
     background-color: #ffffff;
-    padding: 20px;
+    padding: 40px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+     margin-left: 70px;
 }
 
 /* Geolocation Section */
 .geolocation-container {
     background-color: #ffffff;
-    padding: 20px;
+    padding: 40px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-left: 70px;
 }
 
 /* Buttons */
@@ -287,6 +289,7 @@ button:hover {
     #calendar-container {
         width: 90%;
         margin: 20px auto;
+        margin-left: 0;
     }
 
     #map {

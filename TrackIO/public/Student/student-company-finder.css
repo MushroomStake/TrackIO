@@ -81,9 +81,9 @@ body {
 /* Map Section */
 #map {
     height: 400px;
-    width: calc(100% - 270px); /* Adjust width to account for the navbar */
+    width: calc(100% - 290px); /* Adjust width to account for the navbar */
     margin: 20px auto;
-    margin-left: 270px; /* Add left margin to avoid overlapping the navbar */
+    margin-left: 290px; /* Add left margin to avoid overlapping the navbar */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #f9f9f9; /* Light background for better contrast */
@@ -93,7 +93,7 @@ body {
 
 /* Add a title above the map */
 .map-title {
-    margin-left: 270px; /* Align with the map */
+    margin-left: 295px; /* Align with the map */
     font-size: 20px;
     font-weight: bold;
     color: #007BFF;
@@ -109,6 +109,7 @@ body {
     justify-content: center;
     margin: 20px auto;
     padding: 20px;
+    margin-left: 280px;
 }
 
 /* Company Card */
@@ -124,6 +125,7 @@ body {
     flex-direction: column;
     gap: 8px;
     position: relative;
+    margin-left: 130px; 
 }
 
 .company-card.accepted {
