@@ -412,7 +412,7 @@ async function showStudentSubmissions(studentId) {
     html += `</div>`;
     // Simple modal
     let modal = document.createElement("div");
-    modal.style.position = "center";
+    modal.style.position = "fixed";
     modal.style.top = "0";
     modal.style.left = "0";
     modal.style.width = "100vw";
@@ -422,7 +422,7 @@ async function showStudentSubmissions(studentId) {
     modal.style.alignItems = "center";
     modal.style.justifyContent = "center";
     modal.style.zIndex = "9999";
-    modal.innerHTML = `<div style="background:#fff;padding:100px;border-radius:10px;max-width:95vw;max-height:90vh;overflow:auto;position:relative;">
+    modal.innerHTML = `<div style="background:#fff;padding:24px;border-radius:10px;max-width:95vw;max-height:90vh;overflow:auto;position:relative;">
       <button style="position:absolute;top:8px;right:12px;font-size:1.5em;" onclick="this.parentNode.parentNode.remove()">×</button>
       ${html}
     </div>`;
@@ -529,7 +529,7 @@ async function renderReportsModal() {
     const reports = grouped[title];
     const { description, deadline } = reports[0];
     html += `
-      <div class="report-modal-block" style="margin-bottom:32px;">
+      <div class="report-modal-block" style="margin-bottom:32px;padding:50px;border:1px solid #ddd;border-radius:8px;">
         <h3 style="margin-bottom:4px;">${sanitize(title)}</h3>
         <div style="font-size:0.98em;color:#555;margin-bottom:6px;">
           <strong>Description:</strong> ${sanitize(description) || "-"}<br>
