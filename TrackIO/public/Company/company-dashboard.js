@@ -12,7 +12,8 @@ import {
     getDocs,
     updateDoc,
     query,
-    where
+    where,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // Firebase config
@@ -101,10 +102,7 @@ function renderApplicants(applicants, attendanceMap, page = 1) {
             <div class="applicant-cards">
                 ${paginatedApplicants.length === 0 ? `<div class="no-applicants">No applicants found.</div>` : paginatedApplicants.map(app => {
                     // Get Manila date string (YYYY-MM-DD) for today
-                    const now = new Date();
-                    const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-                    const manilaDate = manilaNow.toISOString().split("T")[0];
-
+                    const manilaDate = getManilaDateString();
                     const records = attendanceMap[app.student_email?.toLowerCase()] || [];
                     const todayRecord = records.find(r => r.date === manilaDate);
 
@@ -194,9 +192,8 @@ function renderApplicants(applicants, attendanceMap, page = 1) {
                 if (!companyId) return showToast("Company not authenticated!");
 
                 // Get Manila date string (YYYY-MM-DD)
-                const now = new Date();
-                const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-                const manilaDate = manilaNow.toISOString().split("T")[0];
+                const manilaDate = getManilaDateString();
+                console.log("Manila date for reset:", manilaDate);
 
                 // Find today's attendance record for this student
                 const recordsCol = collection(db, "companies", companyId, "attendance", email, "records");
@@ -211,8 +208,14 @@ function renderApplicants(applicants, attendanceMap, page = 1) {
                 // Only reset the latest record for today (if multiple, reset the last one)
                 let latestDoc = null;
                 recordsSnap.forEach(docSnap => {
-                    if (!latestDoc || docSnap.data().checkedIn > latestDoc.data().checkedIn) {
+                    const checkedIn = docSnap.data().checkedIn;
+                    if (!latestDoc) {
                         latestDoc = docSnap;
+                    } else if (checkedIn && latestDoc.data().checkedIn) {
+                        // Handle Firestore Timestamp or Date
+                        let a = checkedIn.toDate ? checkedIn.toDate().getTime() : new Date(checkedIn).getTime();
+                        let b = latestDoc.data().checkedIn.toDate ? latestDoc.data().checkedIn.toDate().getTime() : new Date(latestDoc.data().checkedIn).getTime();
+                        if (a > b) latestDoc = docSnap;
                     }
                 });
 
@@ -382,4 +385,14 @@ if (logoutBtn) {
             console.error("Logout error:", error);
         }
     });
+}
+
+// Get the current date/time in Manila as a string
+function getManilaDateString() {
+    const manila = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+    const manilaDate = new Date(manila);
+    const year = manilaDate.getFullYear();
+    const month = String(manilaDate.getMonth() + 1).padStart(2, '0');
+    const day = String(manilaDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }

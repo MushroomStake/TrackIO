@@ -87,7 +87,6 @@ onAuthStateChanged(auth, async (Teacher) => {
                 ? Teacher.email.split('@')[0] 
                 : Teacher.email;
 
-            await fetchTeacherData(teacherId);
         } catch (error) {
             console.error("Error fetching teacher data for authenticated user:", error);
         }

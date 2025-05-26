@@ -793,31 +793,6 @@ function showReminder(message) {
     setTimeout(() => toast.remove(), 3500);
 }
 
-function displayProfileCompletion(studentData) {
-    let filled = 0, total = 4;
-    let missing = [];
-    if (studentData.firstName) filled++; else missing.push("First Name");
-    if (studentData.lastName) filled++; else missing.push("Last Name");
-    if (studentData.profile_pic) filled++; else missing.push("Profile Picture");
-    if (studentData.contactNumber) filled++; else missing.push("Contact Number");
-    const percent = Math.round((filled / total) * 100);
-    document.getElementById("profile-completion").innerHTML = `
-        <div style="margin:10px 0;">
-            <strong>Profile Completion:</strong>
-            <div style="background:#eee;border-radius:8px;width:100%;height:14px;overflow:hidden;">
-                <div style="background:#1976d2;width:${percent}%;height:100%;"></div>
-            </div>
-            <span>${percent}%</span>
-            ${missing.length ? `<div style="color:#d32f2f;font-size:0.95em;">Missing: ${missing.join(", ")}</div>` : ""}
-        </div>
-    `;
-}
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const studentDoc = await getDoc(doc(db, "students", user.uid));
-        if (studentDoc.exists()) displayProfileCompletion(studentDoc.data());
-    }
-});
 
 async function displayTodayStatus(user) {
     // Get today's date in YYYY-MM-DD

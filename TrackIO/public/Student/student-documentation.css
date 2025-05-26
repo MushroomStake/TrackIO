@@ -4,7 +4,6 @@ body {
     margin: 0;
     padding: 20px;
     padding-top: 80px; /* Match your navbar height */
-    background: linear-gradient(to bottom, #ffffff 80%, #b3e5fc);
     color: #333;
     height: 100%;
 }
@@ -95,7 +94,13 @@ body {
     display: none;
     margin-top: 10px;
 }
-
+/* Add this to your CSS for styling the empty state */
+.empty-state {
+    text-align: center;
+    color: #aaa;
+    margin: 40px 0;
+    font-size: 1.2em;
+}
 /* Responsive Design */
 @media (max-width: 1200px) {
     .report-container {

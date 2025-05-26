@@ -9,30 +9,26 @@
   
 </head>
 <body>
-
     <!-- Header -->
-   
-        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
-        <nav class="right-header-nav">
-           
-        </nav>
-   
+    <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+    <nav class="right-header-nav"></nav>
 
     <!-- Notification Pop-Up -->
     <div class="notification-popup hidden" id="notification-popup"></div>
+    <div id="doc-toast" aria-live="polite" style="display:none;"></div>
 
-     <!-- Navigation Bar -->
+    <!-- Navigation Bar -->
     <nav class="navbar">
         <a href="Teacher-dashboard.html" class="nav-item" aria-label="Dashboard">
-            <img src="../img/home.png" alt="home Icon">
+            <img src="../img/home.png" alt="Home Icon">
             <span>Dashboard</span>
         </a>
-         <a href="Teacher-workinghours.html" class="nav-item" aria-label="Evaluate Student">
-            <img src="../img/evaluation-custom.png" alt="Evaluation">
+        <a href="Teacher-workinghours.html" class="nav-item" aria-label="Deploy Student">
+            <img src="../img/evaluation-custom.png" alt="Evaluation Icon">
             <span>Deploy Student</span>
         </a>
-        <a href="Teacher-monitor-location.html" class="nav-item" aria-label="Documentation">
-            <img src="../img/assessment.png" alt="Documentation Icon">
+        <a href="Teacher-monitor-location.html" class="nav-item" aria-label="Monitor Student">
+            <img src="../img/assessment.png" alt="Monitor Icon">
             <span>Monitor Student</span>
         </a>
         <a href="Teacher-document.html" class="nav-item" aria-label="Documentation">
@@ -41,29 +37,36 @@
         </a>
     </nav>
 
-    <section class="upload-section" style="max-width:500px;margin:32px auto;">
-      <h2>Upload Document</h2>
-      <form id="upload-form">
-        <label>Title:<br>
-          <input type="text" id="doc-title" required style="width:100%;">
-        </label><br><br>
-        <label>Description:<br>
-          <textarea id="doc-desc" required style="width:100%;"></textarea>
-        </label><br><br>
-        <label>File (PDF/Image):<br>
-          <input type="file" id="doc-file" accept="application/pdf,image/*" required>
-        </label><br><br>
-        <button type="submit">Upload</button>
-      </form>
+    <!-- Upload Section -->
+    <section class="upload-section">
+        <h2>Upload Document</h2>
+        <form id="upload-form" aria-label="Upload Document">
+            <label>Title:<br>
+                <input type="text" id="doc-title" required style="width:100%;">
+            </label><br><br>
+            <label>Description:<br>
+                <textarea id="doc-desc" required style="width:100%;"></textarea>
+            </label><br><br>
+            <label>File (PDF/Image):<br>
+                <input type="file" id="doc-file" accept="application/pdf,image/*" required>
+            </label><br><br>
+            <button id="upload-btn" type="submit">Upload</button>
+        </form>
     </section>
 
-    <section class="documents-section" style="max-width:700px;margin:32px auto;">
-      <h2>Your Documents</h2>
-      <div id="documents-list"></div>
+    <!-- Documents Section -->
+    <section class="documents-section">
+        <h2>Your Documents</h2>
+        <input id="doc-search" type="search" placeholder="Search documents..." aria-label="Search documents">
+        <div id="docs-pagination"></div>
+        <div id="documents-list"></div>
     </section>
+
+    <!-- Floating Upload Button -->
+    <button id="floating-upload-btn" aria-label="Upload Document"
+        style="position:fixed;bottom:32px;right:32px;z-index:1200;background:#1976d2;color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:2em;box-shadow:0 2px 8px #0002;cursor:pointer;display:none;">&#8679;</button>
 
     <script type="module" src="Teacher-document.js"></script>
     <script type="module" src="navbar.js"></script>
-
 </body>
 </html>

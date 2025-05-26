@@ -9,28 +9,25 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <link rel="stylesheet" href="Teacher-dashboard.css" />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  
 </head>
 <body>
 
     <!-- Header -->
-   
-        <button class="burger-button" aria-label="Toggle Navigation">☰</button>
-        <nav class="right-header-nav">
-            <button id="logout-button" class="logout-button" aria-label="Logout">Logout</button>
-        </nav>
-   
+    <button class="burger-button" aria-label="Toggle Navigation">☰</button>
+    <nav class="right-header-nav">
+        <button id="logout-button" class="logout-button" aria-label="Logout">Logout</button>
+    </nav>
 
     <!-- Notification Pop-Up -->
     <div class="notification-popup hidden" id="notification-popup"></div>
 
-    <!-- Navigation Bar -->
+    <!-- Navigation Bar (LEFT) -->
     <nav class="navbar">
         <a href="Teacher-dashboard.html" class="nav-item" aria-label="Dashboard">
             <img src="../img/home.png" alt="home Icon">
             <span>Dashboard</span>
         </a>
-         <a href="Teacher-workinghours.html" class="nav-item" aria-label="Evaluate Student">
+        <a href="Teacher-workinghours.html" class="nav-item" aria-label="Evaluate Student">
             <img src="../img/evaluation-custom.png" alt="Evaluation">
             <span>Deploy Student</span>
         </a>
@@ -44,60 +41,76 @@
         </a>
     </nav>
 
-  <div class="main-container">
-    <!-- Back Icon -->
-    <div>
-      <img src="../img/back-icon.png" alt="Back" id="back-icon" class="back-icon" />
+    <!-- Main Layout: main content + right reports sidebar -->
+    <div class="main-layout" style="display:flex;min-height:100vh;">
+      <div class="main-container" style="flex:1;">
+        <!-- Dashboard Section -->
+        <div class="dashboard-container">
+          <h1>Student Monitoring Dashboard</h1>
+          <div id="teacher-controls">
+            <input type="text" id="search-student" placeholder="Search by name or email..." />
+            <select id="filter-program">
+              <option value="">All Programs</option>
+              <option value="BSIT">BSIT</option>
+              <option value="BSCS">BSCS</option>
+              <option value="BSEMC">BSEMC</option>
+            </select>
+            <select id="filter-year">
+              <option value="">All Years</option>
+              <option value="2nd Year - Mid Year">2nd Year - Mid Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+            <select id="filter-block">
+              <option value="">All Blocks</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+              <option value="E">E</option>
+              <option value="F">F</option>
+            </select>
+            <button id="select-all-btn">Select All</button>
+            <button id="assign-report-btn">Assign Report</button>
+            <button id="send-request-btn" style="display:none;">Send Submission Request</button>
+          </div>
+          <ul id="user-location-list"></ul>
+          <div id="programs-container"></div>
+        </div>
+      </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:24px;border-radius:10px;max-width:95vw;max-height:90vh;overflow:auto;position:relative;">
+        <button id="close-report-modal" style="position:absolute;top:8px;right:12px;font-size:1.5em;">×</button>
+        <h2>Assign Report</h2>
+        <label>Title: <input id="report-title" type="text" style="width:90%;"></label><br><br>
+        <label>Description: <textarea id="report-description" style="width:90%;"></textarea></label><br><br>
+        <input type="file" id="teacher-upload-file" accept=".pdf,image/*"><br><br>
+        <label>Deadline: <input id="report-deadline" type="date"></label><br><br>
+        <button id="submit-report">Assign</button>
+      </div>
     </div>
 
-    <!-- Dashboard Section -->
-    <div class="dashboard-container">
-      <h1>Student Monitoring Dashboard</h1>
-        <div id="teacher-controls">
-    <input type="text" id="search-student" placeholder="Search by name or email..." />
-    <select id="filter-program">
-       <option value="">All Programs</option>
-        <option value="BSIT">BSIT</option>
-        <option value="BSCS">BSCS</option>
-        <option value="BSEMC">BSEMC</option>
-      </select>
-      <select id="filter-year">
-        <option value="">All Years</option>
-        <option value="2nd Year - Mid Year">2nd Year - Mid Year</option>
-        <option value="4th Year">4th Year</option>
-      </select>
-      <select id="filter-block">
-        <option value="">All Blocks</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-        <option value="E">E</option>
-        <option value="F">F</option>
-      <!-- ... -->
-    </select>
-    <button id="select-all-btn">Select All</button>
-    <button id="assign-report-btn">Assign Report</button>
-    <button id="send-request-btn">Send Submission Request</button>
-</div>
-      <ul id="user-location-list"></ul>
-      <div id="programs-container"></div>
+    <!-- Floating Reports Button -->
+<button id="open-reports-modal" style="position:fixed;bottom:32px;right:32px;z-index:1200;background:#1976d2;color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:2em;box-shadow:0 2px 8px #0002;cursor:pointer;">📄</button>
+
+<!-- Reports Modal -->
+<div id="reports-modal" role="dialog" aria-modal="true" aria-labelledby="reports-modal-title" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:24px;border-radius:10px;max-width:90vw;max-height:90vh;overflow:auto;position:relative;">
+    <button id="close-reports-modal" style="position:absolute;top:8px;right:12px;font-size:1.5em;">×</button>
+    <h2 id="reports-modal-title">Submitted Reports</h2>
+    <div id="bulk-actions-bar" style="display:none;margin-bottom:12px;">
+      <span id="bulk-selected-count">0 selected</span>
+      <button id="bulk-approve-btn" disabled>Bulk Approve</button>
+      <button id="bulk-reject-btn" disabled>Bulk Reject</button>
     </div>
-  </div>
-  <script type="module" src="Teacher-dashboard.js"></script>
-  <script type="module" src="teacher-script.js"></script>
-
-  <!-- Report Modal -->
-<div id="report-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;padding:24px;border-radius:10px;max-width:95vw;max-height:90vh;overflow:auto;position:relative;">
-    <button id="close-report-modal" style="position:absolute;top:8px;right:12px;font-size:1.5em;">×</button>
-    <h2>Assign Report</h2>
-    <label>Title: <input id="report-title" type="text" style="width:90%;"></label><br><br>
-    <label>Description: <textarea id="report-description" style="width:90%;"></textarea></label><br><br>
-    <label>Deadline: <input id="report-deadline" type="date"></label><br><br>
-    <button id="submit-report">Assign</button>
+    <div id="reports-list"></div>
+    <div id="reports-pagination" style="margin-top:16px;"></div>
   </div>
 </div>
 
+<!-- Place scripts here, at the end! -->
+<script type="module" src="Teacher-dashboard.js"></script>
+<script type="module" src="teacher-script.js"></script>
 </body>
 </html>

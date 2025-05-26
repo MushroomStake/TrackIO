@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC9z8Amm-vlNcbw-XqEnrkt_WpWHaGfwtQ",
@@ -12,109 +12,265 @@ const firebaseConfig = {
     measurementId: "G-DSPVFG2CYW"
 };
 
-function showConfirmationPopup() {
-    const popup = document.getElementById("confirmation-popup");
-    popup.style.opacity = "1";
-    setTimeout(() => {
-        popup.style.opacity = "0";
-    }, 2000); // Visible for 2 seconds
-}
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
-const reportContainer = document.getElementById("report-container");
+let currentUser = null;
+let reportsMap = {}; // {reportId: {title, description, deadline, ...}}
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = "/public/Student/student-login.html"; // corrected the redirect
+        window.location.href = "/public/Student/student-login.html";
+        return;
+    }
+    currentUser = user;
+    await showAllReportsAndStatus(user);
+});
+
+// --- Only keep this function for rendering and handling per-report submissions ---
+async function showAllReportsAndStatus(user) {
+    const reportsCol = collection(db, "students", user.uid, "reports");
+    const reportsSnap = await getDocs(reportsCol);
+    const submissionsCol = collection(db, "students", user.uid, "submissions");
+    const submissionsSnap = await getDocs(submissionsCol);
+
+    // If no reports assigned, show a notification and return
+    const statusDiv = document.getElementById("reports-status-list");
+    if (reportsSnap.empty) {
+        statusDiv.innerHTML = `<div class="empty-state">No reports assigned yet. Enjoy your day! 🎉</div>`;
         return;
     }
 
-    const uid = user.uid;
-    const studentRef = doc(db, "students", uid);
-    const studentDoc = await getDoc(studentRef);
+    // Build a map for quick lookup and history
+    const submissionsMap = {};
+    submissionsSnap.forEach(doc => {
+        const sub = doc.data();
+        if (!submissionsMap[sub.reportId]) submissionsMap[sub.reportId] = [];
+        submissionsMap[sub.reportId].push({ ...sub, docId: doc.id });
+    });
 
-    if (studentDoc.exists()) {
-        const studentData = studentDoc.data();
-        const checkInOutData = studentData.checkInOutData || [];
+    let html = '<div class="report-container">';
+    reportsSnap.forEach(reportDoc => {
+        const report = reportDoc.data();
+        const reportId = reportDoc.id;
+        reportsMap[reportId] = report; // <-- ADD THIS LINE
+        const submissionHistory = submissionsMap[reportId] || [];
+        // Get the latest submission (by uploadedAt)
+        const latestSubmission = submissionHistory.length
+            ? submissionHistory.slice().sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0]
+            : null;
 
-        // Optional: sort by date
-        checkInOutData.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Deadline status
+        let deadlineStatus = "";
+        if (report.deadline) {
+            const now = new Date();
+            const deadlineDate = new Date(report.deadline);
+            if (now > deadlineDate) {
+                deadlineStatus = `<span style="color:#d32f2f;">(Deadline passed)</span>`;
+            } else {
+                deadlineStatus = `<span style="color:#43a047;">(On time)</span>`;
+            }
+        }
 
-        checkInOutData.forEach(async (entry, index) => {
-            const { date, checkInTime, checkOutTime } = entry;
+        html += `<div class="report-card">
+            <h3>${report.title}</h3>
+            <div class="report-meta">
+                <strong>Description:</strong> ${report.description || "-"}<br>
+                <strong>Deadline:</strong> ${formatDate(report.deadline)} ${deadlineStatus}
+            </div>`;
 
-            // Each reportRef is unique to the entry date
-            const reportId = `${date}_${(":", "-")}`;
-            const reportRef = doc(db, "students", uid, "dailyReports", reportId);
+        // Submission history (optional, show all attempts)
+        if (submissionHistory.length > 1) {
+            html += `<details style="margin:6px 0;">
+                <summary>Submission History (${submissionHistory.length})</summary>
+                <ul style="margin:0 0 0 18px;padding:0;">`;
+            submissionHistory
+                .slice()
+                .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
+                .forEach((sub, idx) => {
+                    html += `<li>
+                        <strong>${idx === 0 ? "Latest" : `Attempt #${submissionHistory.length - idx}`}</strong>:
+                        <span style="color:${sub.status === 'approved' ? '#43a047' : sub.status === 'rejected' ? '#d32f2f' : '#fbc02d'}">${sub.status}</span>,
+                        <a href="../../${sub.fileUrl}" target="_blank">View</a>,
+                        <span>${formatDate(sub.uploadedAt)}</span>
+                    </li>`;
+                });
+            html += `</ul></details>`;
+        }
 
-            const reportDoc = await getDoc(reportRef);
-            const existingReport = reportDoc.exists() ? reportDoc.data().report : "";
+        // Show latest submission details
+        if (latestSubmission) {
+            html += `<div>
+                <strong>Status:</strong> <span style="color:${latestSubmission.status === 'approved' ? '#43a047' : latestSubmission.status === 'rejected' ? '#d32f2f' : '#fbc02d'}">${latestSubmission.status}</span><br>
+                <strong>Uploaded:</strong> ${formatDate(latestSubmission.uploadedAt)}<br>
+                <strong>File:</strong>${latestSubmission.fileUrl ? `<a href="../../${latestSubmission.fileUrl}" target="_blank">View</a>` : "-"}<br>
+            </div>`;
+        }
 
-            // Create report UI
-            const card = document.createElement("div");
-            card.className = "report-card";
+        // Show form only if not submitted or rejected
+        const canSubmit =
+            !latestSubmission ||
+            latestSubmission.status !== "approved";
+            
+        if (canSubmit) {
+            html += `
+                <form class="submission-form" data-reportid="${reportId}" data-existing="${!!latestSubmission}" data-status="${latestSubmission ? latestSubmission.status : ''}" enctype="multipart/form-data" style="margin-top:8px;">
+                    <input type="file" name="file" accept=".pdf,image/*" aria-label="Upload file for ${report.title}" required>
+                    <button type="submit">${latestSubmission && latestSubmission.status === "rejected" ? "Resubmit" : "Submit"}</button>
+                    <span class="submission-status" aria-live="polite"></span>
+                </form>
+            `;
+        } else if (latestSubmission && latestSubmission.status === "pending") {
+            html += `<div style="color:#fbc02d;">Submission pending review. You cannot submit again until reviewed.</div>`;
+        } else if (latestSubmission && latestSubmission.status === "approved") {
+            html += `<div style="color:#43a047;">Submission approved. No further submissions allowed.</div>`;
+        }
+        html += `</div>`;
+    });
+    html += '</div>';
+    statusDiv.innerHTML = html;
 
-            const title = document.createElement("h3");
-            title.textContent = `Day ${index + 1} - ${new Date(date).toDateString()}`;
+    // Attach event listeners to each form
+    document.querySelectorAll('.submission-form').forEach(form => {
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            const reportId = form.getAttribute('data-reportid');
+            const fileInput = form.querySelector('input[type="file"]');
+            const file = fileInput.files[0];
+            const statusSpan = form.querySelector('.submission-status');
+            const existing = form.getAttribute('data-existing') === "true";
+            const lastStatus = form.getAttribute('data-status');
 
-            const meta = document.createElement("div");
-            meta.className = "report-meta";
-            meta.innerHTML = `🕒 Time-in: ${checkInTime} | 🕒 Time-out: ${checkOutTime}`;
+            // File type and size validation
+            if (!file) {
+                statusSpan.textContent = "Please select a file.";
+                return;
+            }
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['pdf', 'jpg', 'jpeg', 'png'].includes(ext)) {
+                statusSpan.textContent = "Invalid file type. Only PDF, JPG, JPEG, PNG allowed.";
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                statusSpan.textContent = "File too large (max 5MB).";
+                return;
+            }
 
-            const addBtn = document.createElement("button");
-            addBtn.className = "add-btn";
-            addBtn.textContent = existingReport ? "✏️ Edit Report" : "➕ Add Report";
+            // Confirmation before overwriting
+            if (existing && lastStatus !== "rejected") {
+                if (!confirm("You already have a submission for this report. Submitting again will overwrite your previous file. Continue?")) {
+                    return;
+                }
+            }
 
-            const textarea = document.createElement("textarea");
-            textarea.className = "report-textarea";
-            textarea.placeholder = "Write about what you did, what you learned, any challenges, etc...";
-            textarea.value = existingReport;
-            textarea.style.display = "none";
+            // Show loading spinner
+            statusSpan.innerHTML = `<span class="spinner" aria-label="Uploading..."></span> Uploading...`;
+            form.querySelector('button[type="submit"]').disabled = true;
 
-            const saveBtn = document.createElement("button");
-            saveBtn.className = "save-btn";
-            saveBtn.textContent = "💾 Save Report";
-            saveBtn.style.display = "none";
+            try {
+                // Upload to PHP backend
+                const formData = new FormData();
+                formData.append("file", file);
 
-            let isEditing = false;
-
-            // Toggle textarea and save button
-            addBtn.addEventListener("click", () => {
-                isEditing = !isEditing;
-                textarea.style.display = isEditing ? "block" : "none";
-                saveBtn.style.display = isEditing ? "inline-block" : "none";
-            });
-
-            // SAVE BUTTON - fix: wrap in closure so it captures correct reportRef
-            saveBtn.addEventListener("click", async () => {
-                const reportText = textarea.value.trim();
-                if (reportText.length === 0) {
-                    alert("Please write something in the report.");
+                const res = await fetch("../../PHP/student-submissions.php", { method: "POST", body: formData });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    statusSpan.textContent = "Server error: Invalid response.";
+                    showToast("Server error: Invalid response.", "error");
+                    form.querySelector('button[type="submit"]').disabled = false;
+                    return;
+                }
+                if (!data.success) {
+                    statusSpan.textContent = "Upload failed: " + data.error;
+                    form.querySelector('button[type="submit"]').disabled = false;
+                    showToast("Upload failed: " + data.error, "error");
                     return;
                 }
 
-                await setDoc(reportRef, {
-                    report: reportText,
-                    submittedAt: new Date()
-                });
+                // Save submission record in Firestore
+                const report = reportsMap[reportId];
+                if (!report) {
+                    statusSpan.textContent = "Report info missing. Please refresh the page.";
+                    showToast("Report info missing. Please refresh.", "error");
+                    form.querySelector('button[type="submit"]').disabled = false;
+                    return;
+                }
+                const now = new Date();
+                const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+                const manilaDate = manilaNow.toISOString().split("T")[0];
 
-                alert("Report saved successfully!");
+                const submissionData = {
+                    reportId,
+                    title: report.title,
+                    description: report.description,
+                    deadline: report.deadline,
+                    fileUrl: data.url,
+                    uploadedAt: new Date().toISOString(),
+                    date: manilaDate,
+                    status: "pending"
+                };
 
-                addBtn.textContent = "✏️ Edit Report";
-                textarea.style.display = "none";
-                saveBtn.style.display = "none";
-                isEditing = false;
-            });
+                await addDoc(submissionsCol, submissionData);
 
-            card.appendChild(title);
-            card.appendChild(meta);
-            card.appendChild(addBtn);
-            card.appendChild(textarea);
-            card.appendChild(saveBtn);
-            reportContainer.appendChild(card);
-        });
-    }
-});
+                statusSpan.textContent = "Submission uploaded!";
+                showToast("Submission uploaded!", "success");
+                form.querySelector('button[type="submit"]').disabled = false;
+                await showAllReportsAndStatus(currentUser); // Refresh UI
+            } catch (err) {
+                console.error("Submission error:", err);
+                statusSpan.textContent = "An error occurred. Please try again.";
+                showToast("An error occurred. Please try again.", "error");
+                form.querySelector('button[type="submit"]').disabled = false;
+            }
+        };
+    });
+}
+
+// Toast notification utility
+function showToast(message, type = "info") {
+    let toast = document.createElement("div");
+    toast.textContent = message;
+    toast.style.position = "fixed";
+    toast.style.bottom = "32px";
+    toast.style.left = "50%";
+    toast.style.transform = "translateX(-50%)";
+    toast.style.background = type === "success" ? "#43a047" : type === "error" ? "#d32f2f" : "#333";
+    toast.style.color = "#fff";
+    toast.style.padding = "12px 24px";
+    toast.style.borderRadius = "6px";
+    toast.style.fontSize = "1.1em";
+    toast.style.zIndex = "9999";
+    toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3000);
+}
+
+// Optional: Add a simple spinner style
+const spinnerStyle = document.createElement("style");
+spinnerStyle.innerHTML = `
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #333;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}`;
+document.head.appendChild(spinnerStyle);
+
+function formatDate(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}

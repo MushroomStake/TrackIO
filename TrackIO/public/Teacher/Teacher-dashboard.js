@@ -54,15 +54,9 @@ let loadingAttendance = false;
 // --- Security: Sanitize output ---
 function sanitize(str) {
   if (!str) return "";
-  return String(str).replace(/[<>&"']/g, function (c) {
-    return ({
-      '<': '&lt;',
-      '>': '&gt;',
-      '&': '&amp;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[c];
-  });
+  return String(str).replace(/[<>&"']/g, c => ({
+    '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+  })[c]);
 }
 
 // --- Toast Notification ---
@@ -191,6 +185,36 @@ async function renderStudentCards() {
       progressHtml += renderProgressCircle(0, ojtHoursExtend, "#43a047", "Community Service Progress");
     }
 
+    // After fetching submissions for the student
+    let submissionStatus = "Not Submitted";
+    let submissionClass = "status-red";
+    let isLate = false;
+
+    const reportsCol = collection(db, "students", student.id, "reports");
+    const reportsSnap = await getDocs(reportsCol);
+
+    const submissionsCol = collection(db, "students", student.id, "submissions");
+    const submissionsSnap = await getDocs(submissionsCol);
+
+    if (!submissionsSnap.empty) {
+      // There is at least one submission
+      submissionStatus = "Submitted";
+      submissionClass = "status-green";
+      // Check if any submission is late for any report
+      for (const reportDoc of reportsSnap.docs) {
+        const report = reportDoc.data();
+        submissionsSnap.forEach(subDoc => {
+          const sub = subDoc.data();
+          // Compare uploadedAt and deadline (ensure both are ISO strings)
+          if (sub.uploadedAt && report.deadline && sub.uploadedAt > report.deadline) {
+            submissionStatus = "Late";
+            submissionClass = "status-yellow";
+            isLate = true;
+          }
+        });
+      }
+    }
+
     card.innerHTML = `
       <div class="student-name">${sanitize(student.firstName)} ${sanitize(student.lastName)}</div>
       <div class="student-email">${sanitize(student.email) || "No email"}</div>
@@ -202,6 +226,7 @@ async function renderStudentCards() {
         ${student.yearLevel === "4th Year" ? `<br><strong>Community Service Hours:</strong> ${ojtHoursExtend || "-"}` : ""}
       </div>
       ${progressHtml}
+      <div class="submission-status ${submissionClass}">${submissionStatus}</div>
       ${selectedStudentIds.has(student.id) ? `<span class="selected-check" aria-hidden="true">&#10003;</span>` : ""}
       <button class="view-submissions-btn" data-id="${student.id}" aria-label="View submissions for ${sanitize(student.firstName)}">View Submissions</button>
     `;
@@ -298,6 +323,15 @@ if (reportSubmitBtn) {
       showToast("Title and deadline required!");
       return;
     }
+    const fileInput = document.getElementById("teacher-upload-file");
+    let fileUrl = "";
+    if (fileInput && fileInput.files.length > 0) {
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      const res = await fetch("../../PHP/teacher-submissions.php", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.success) fileUrl = data.url;
+    }
     try {
       for (const id of selectedStudentIds) {
         const student = allStudents.find(s => s.id === id);
@@ -307,7 +341,8 @@ if (reportSubmitBtn) {
           description: desc,
           deadline,
           status: "pending",
-          assignedAt: new Date().toISOString()
+          assignedAt: new Date().toISOString(),
+          fileUrl // attach file if any
         });
       }
       showToast("Report assigned!");
@@ -352,21 +387,27 @@ async function showStudentSubmissions(studentId) {
     let html = `<div style="max-width:90vw;">`;
     submissionsSnap.forEach(docSnap => {
       const data = docSnap.data();
+      html += `<div style="margin-bottom:18px;padding:10px;border:1px solid #eee;border-radius:8px;">
+        <div><strong>Title:</strong> ${sanitize(data.title) || '-'}</div>
+        <div><strong>Description:</strong> ${sanitize(data.description) || '-'}</div>
+        <div><strong>Deadline:</strong> ${formatDate(data.deadline)}</div>
+        <div><strong>Status:</strong> <span style="color:${data.status === 'approved' ? '#43a047' : data.status === 'rejected' ? '#d32f2f' : '#fbc02d'}">${sanitize(data.status) || 'pending'}</span></div>
+        <div><strong>Uploaded:</strong> ${data.uploadedAt ? new Date(data.uploadedAt).toLocaleString() : '-'}</div>
+        <div style="margin-top:6px;">`;
       if (data.fileUrl) {
         if (data.fileUrl.endsWith(".pdf")) {
-          html += `<div style="margin-bottom:12px;">
-            <a href="${data.fileUrl}" target="_blank">View PDF</a>
-            <button onclick="window.approveSubmission('${studentId}','${docSnap.id}')">Approve</button>
-            <button onclick="window.rejectSubmission('${studentId}','${docSnap.id}')">Reject</button>
-          </div>`;
+          html += `<a href="../../${data.fileUrl}" target="_blank">View PDF</a>`;
         } else {
-          html += `<div style="margin-bottom:12px;">
-            <img src="${data.fileUrl}" alt="Submission" style="max-width:120px;max-height:120px;cursor:pointer;" onclick="window.open('${data.fileUrl}','_blank')">
-            <button onclick="window.approveSubmission('${studentId}','${docSnap.id}')">Approve</button>
-            <button onclick="window.rejectSubmission('${studentId}','${docSnap.id}')">Reject</button>
-          </div>`;
+          html += `<img src="../../${data.fileUrl}" alt="Submission" style="max-width:120px;max-height:120px;cursor:pointer;" onclick="window.open('${data.fileUrl}','_blank')">`;
         }
       }
+      html += `
+          <div style="margin-top:8px;">
+            <button onclick="window.approveSubmission('${studentId}','${docSnap.id}')">Approve</button>
+            <button onclick="window.rejectSubmission('${studentId}','${docSnap.id}')">Reject</button>
+          </div>
+        </div>
+      </div>`;
     });
     html += `</div>`;
     // Simple modal
@@ -411,6 +452,272 @@ async function showStudentSubmissions(studentId) {
   }
 }
 
+// --- Reports Modal Logic with Pagination & Bulk Actions ---
+let reportsPage = 1;
+const REPORTS_PER_PAGE = 5;
+let bulkSelected = new Set();
+
+const reportsModal = document.getElementById("reports-modal");
+const reportsList = document.getElementById("reports-list");
+const reportsPagination = document.getElementById("reports-pagination");
+const bulkActionsBar = document.getElementById("bulk-actions-bar");
+const bulkApproveBtn = document.getElementById("bulk-approve-btn");
+const bulkRejectBtn = document.getElementById("bulk-reject-btn");
+const bulkSelectedCount = document.getElementById("bulk-selected-count");
+
+document.getElementById("open-reports-modal").onclick = () => {
+  reportsPage = 1;
+  bulkSelected.clear();
+  reportsModal.style.display = "flex";
+  renderReportsModal();
+  setTimeout(() => {
+    const firstBtn = reportsModal.querySelector('button, [tabindex]:not([tabindex="-1"])');
+    if (firstBtn) firstBtn.focus();
+    trapFocus(reportsModal);
+  }, 100);
+};
+document.getElementById("close-reports-modal").onclick = () => {
+  reportsModal.style.display = "none";
+};
+reportsModal.addEventListener("mousedown", function(e) {
+  if (e.target === reportsModal) reportsModal.style.display = "none";
+});
+
+async function renderReportsModal() {
+  reportsList.innerHTML = `<div class="spinner" aria-label="Loading"></div>`;
+  reportsPagination.innerHTML = "";
+  bulkActionsBar.style.display = "none";
+  bulkApproveBtn.disabled = true;
+  bulkRejectBtn.disabled = true;
+  bulkSelected.clear();
+
+  // Fetch all students
+  const studentsSnap = await getDocs(collection(db, "students"));
+  let students = [];
+  studentsSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+
+  // Gather all reports for all students
+  let allReports = [];
+  for (const student of students) {
+    const reportsSnap = await getDocs(collection(db, "students", student.id, "reports"));
+    reportsSnap.forEach(reportDoc => {
+      allReports.push({
+        ...reportDoc.data(),
+        reportId: reportDoc.id,
+        studentId: student.id,
+        studentName: `${student.firstName || ""} ${student.lastName || ""}`.trim()
+      });
+    });
+  }
+
+  // Group reports by title
+  const grouped = {};
+  allReports.forEach(r => {
+    if (!grouped[r.title]) grouped[r.title] = [];
+    grouped[r.title].push(r);
+  });
+
+  // Pagination logic
+  const reportTitles = Object.keys(grouped);
+  const totalPages = Math.ceil(reportTitles.length / REPORTS_PER_PAGE);
+  const startIdx = (reportsPage - 1) * REPORTS_PER_PAGE;
+  const endIdx = startIdx + REPORTS_PER_PAGE;
+  const pagedTitles = reportTitles.slice(startIdx, endIdx);
+
+  let html = "";
+  for (const title of pagedTitles) {
+    const reports = grouped[title];
+    const { description, deadline } = reports[0];
+    html += `
+      <div class="report-modal-block" style="margin-bottom:32px;">
+        <h3 style="margin-bottom:4px;">${sanitize(title)}</h3>
+        <div style="font-size:0.98em;color:#555;margin-bottom:6px;">
+          <strong>Description:</strong> ${sanitize(description) || "-"}<br>
+          <strong>Deadline:</strong> ${formatDate(deadline) || "-"}
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="report-modal-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" class="bulk-checkbox" data-title="${sanitize(title)}" data-all="1"></th>
+              <th>Student</th>
+              <th>Status</th>
+              <th>File</th>
+              <th>Uploaded</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    for (const report of reports) {
+      // Fetch latest submission for this report/student
+      const submissionsSnap = await getDocs(
+        query(
+          collection(db, "students", report.studentId, "submissions"),
+          where("reportId", "==", report.reportId)
+        )
+      );
+      let submission = null;
+      submissionsSnap.forEach(doc => {
+        const data = doc.data();
+        if (!submission || (data.uploadedAt && data.uploadedAt > (submission.uploadedAt || ""))) {
+          submission = { id: doc.id, ...data };
+        }
+      });
+
+      let status = "Not Submitted";
+      let statusColor = "#888";
+      let statusIcon = "—";
+      let fileHtml = "-";
+      let uploaded = "-";
+      let actionHtml = "";
+      let canBulk = false;
+
+      if (submission) {
+        status = submission.status || "pending";
+        if (status === "approved") { statusColor = "#43a047"; statusIcon = "✔️"; }
+        else if (status === "rejected") { statusColor = "#d32f2f"; statusIcon = "❌"; }
+        else { statusColor = "#fbc02d"; statusIcon = "⏳"; canBulk = true; }
+        uploaded = submission.uploadedAt ? formatDate(submission.uploadedAt) : "-";
+        if (submission.fileUrl) {
+          if (submission.fileUrl.endsWith(".pdf")) {
+            fileHtml = `<a href="../../${submission.fileUrl}" target="_blank">View PDF</a>`;
+          } else {
+            fileHtml = `<img src="../../${submission.fileUrl}" alt="Submission" style="max-width:60px;max-height:60px;vertical-align:middle;" onclick="window.open('${submission.fileUrl}','_blank')">`;
+          }
+        }
+        if (status === "pending") {
+          actionHtml = `
+            <button class="approve-btn" data-student="${report.studentId}" data-sub="${submission.id}">Approve</button>
+            <button class="reject-btn" data-student="${report.studentId}" data-sub="${submission.id}">Reject</button>
+          `;
+        } else {
+          actionHtml = `<span style="color:#888;">No action</span>`;
+        }
+      } else {
+        actionHtml = `<span style="color:#888;">No submission</span>`;
+      }
+
+      html += `
+        <tr>
+          <td>
+            ${canBulk ? `<input type="checkbox" class="bulk-checkbox" data-student="${report.studentId}" data-sub="${submission ? submission.id : ""}" data-title="${sanitize(title)}">` : ""}
+          </td>
+          <td>${sanitize(report.studentName)}</td>
+          <td>
+            <span class="status-icon">${statusIcon}</span>
+            <span style="font-weight:bold;color:${statusColor};text-transform:capitalize;">${sanitize(status)}</span>
+          </td>
+          <td>${fileHtml}</td>
+          <td>${uploaded}</td>
+          <td>${actionHtml}</td>
+        </tr>
+      `;
+    }
+    html += `
+          </tbody>
+        </table>
+        </div>
+      </div>
+    `;
+  }
+
+  if (!html) html = "<div style='padding:24px;text-align:center;'>No reports found.</div>";
+  reportsList.innerHTML = html;
+
+  // Pagination controls
+  if (totalPages > 1) {
+    reportsPagination.innerHTML = `
+      <button id="prev-reports-page" ${reportsPage === 1 ? "disabled" : ""}>&laquo; Prev</button>
+      <span style="margin:0 12px;">Page ${reportsPage} of ${totalPages}</span>
+      <button id="next-reports-page" ${reportsPage === totalPages ? "disabled" : ""}>Next &raquo;</button>
+    `;
+    document.getElementById("prev-reports-page").onclick = () => { reportsPage--; renderReportsModal(); };
+    document.getElementById("next-reports-page").onclick = () => { reportsPage++; renderReportsModal(); };
+  }
+
+  // Bulk selection logic
+  document.querySelectorAll('.bulk-checkbox').forEach(cb => {
+    cb.onchange = () => {
+      if (cb.dataset.all) {
+        // Select/deselect all for this report title
+        document.querySelectorAll(`.bulk-checkbox[data-title="${cb.dataset.title}"]:not([data-all])`).forEach(box => {
+          box.checked = cb.checked;
+          if (cb.checked) bulkSelected.add(box.dataset.sub);
+          else bulkSelected.delete(box.dataset.sub);
+        });
+      } else {
+        if (cb.checked) bulkSelected.add(cb.dataset.sub);
+        else bulkSelected.delete(cb.dataset.sub);
+      }
+      updateBulkActionsBar();
+    };
+  });
+
+  function updateBulkActionsBar() {
+    const count = bulkSelected.size;
+    bulkSelectedCount.textContent = `${count} selected`;
+    bulkActionsBar.style.display = count > 0 ? "block" : "none";
+    bulkApproveBtn.disabled = count === 0;
+    bulkRejectBtn.disabled = count === 0;
+  }
+
+  bulkApproveBtn.onclick = async () => {
+    bulkApproveBtn.disabled = true;
+    for (const subId of bulkSelected) {
+      const cb = document.querySelector(`.bulk-checkbox[data-sub="${subId}"]`);
+      if (!cb) continue;
+      const studentId = cb.dataset.student;
+      await updateDoc(doc(db, "students", studentId, "submissions", subId), { status: "approved" });
+    }
+    showToast("Bulk approved!");
+    renderReportsModal();
+  };
+  bulkRejectBtn.onclick = async () => {
+    bulkRejectBtn.disabled = true;
+    for (const subId of bulkSelected) {
+      const cb = document.querySelector(`.bulk-checkbox[data-sub="${subId}"]`);
+      if (!cb) continue;
+      const studentId = cb.dataset.student;
+      await updateDoc(doc(db, "students", studentId, "submissions", subId), { status: "rejected" });
+    }
+    showToast("Bulk rejected!");
+    renderReportsModal();
+  };
+
+  // Approve/Reject event listeners
+  document.querySelectorAll(".approve-btn").forEach(btn => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      const studentId = btn.getAttribute("data-student");
+      const subId = btn.getAttribute("data-sub");
+      try {
+        await updateDoc(doc(db, "students", studentId, "submissions", subId), { status: "approved" });
+        showToast("Submission approved!");
+        renderReportsModal();
+      } catch (err) {
+        showToast("Error: " + err.message);
+      }
+      btn.disabled = false;
+    };
+  });
+  document.querySelectorAll(".reject-btn").forEach(btn => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      const studentId = btn.getAttribute("data-student");
+      const subId = btn.getAttribute("data-sub");
+      try {
+        await updateDoc(doc(db, "students", studentId, "submissions", subId), { status: "rejected" });
+        showToast("Submission rejected!");
+        renderReportsModal();
+      } catch (err) {
+        showToast("Error: " + err.message);
+      }
+      btn.disabled = false;
+    };
+  });
+}
+
 // --- Load Students from Firestore ---
 async function loadStudents() {
   container.innerHTML = "<p>Loading students...</p>";
@@ -432,3 +739,24 @@ async function loadStudents() {
 window.addEventListener("DOMContentLoaded", () => {
   loadStudents();
 });
+
+// --- Utility: Date Formatting ---
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "-";
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
+
+// --- Modal Accessibility: Focus Trap & ESC ---
+function trapFocus(modal) {
+  const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  modal.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') modal.style.display = "none";
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+}

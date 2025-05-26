@@ -105,6 +105,15 @@ function parseStudentQR(qrText) {
     return { email, name };
 }
 
+function getManilaDateString() {
+    const manila = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+    const manilaDate = new Date(manila);
+    const year = manilaDate.getFullYear();
+    const month = String(manilaDate.getMonth() + 1).padStart(2, '0');
+    const day = String(manilaDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 async function handleScan(qrText) {
     if (isProcessing) return;
     isProcessing = true;
@@ -129,10 +138,9 @@ async function handleScan(qrText) {
             return;
         }
 
-        const now = new Date();
-        const manilaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-        const manilaDate = manilaNow.toISOString().split("T")[0];
-
+        const manilaNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+        const manilaDate = getManilaDateString();
+        
         const studentAttendanceCol = collection(db, "companies", companyId, "attendance", student.email, "records");
         const q = query(studentAttendanceCol, where("date", "==", manilaDate));
         const recordsSnap = await getDocs(q);
@@ -219,7 +227,32 @@ async function handleScan(qrText) {
 }
 
 function startScanner() {
+    // Prevent multiple scanners
+    if (html5QrCode) {
+        html5QrCode.stop().catch(() => {}).finally(() => {
+            html5QrCode = null;
+            actuallyStartScanner();
+        });
+    } else {
+        actuallyStartScanner();
+    }
+}
+
+function actuallyStartScanner() {
     scanResult.textContent = "";
+
+    // Remove any existing video container
+    const oldVideo = document.getElementById("qr-video");
+    if (oldVideo) oldVideo.remove();
+
+    // Create a new container for the scanner
+    const qrContainer = document.createElement("div");
+    qrContainer.id = "qr-video";
+    qrContainer.style.width = "100%";
+    qrContainer.style.maxWidth = "350px";
+    qrContainer.style.margin = "0 auto 16px auto";
+    scanResult.parentNode.insertBefore(qrContainer, scanResult);
+
     html5QrCode = new Html5Qrcode("qr-video");
     html5QrCode.start(
         { facingMode: "environment" },
@@ -228,9 +261,11 @@ function startScanner() {
             qrbox: { width: 250, height: 250 }
         },
         (decodedText, decodedResult) => {
-            html5QrCode.stop();
-            stopScanBtn.style.display = "none";
-            startScanBtn.style.display = "inline-block";
+            html5QrCode.stop().then(() => {
+                html5QrCode = null;
+                stopScanBtn.style.display = "none";
+                startScanBtn.style.display = "inline-block";
+            });
             handleScan(decodedText);
         },
         (errorMessage) => {
@@ -245,9 +280,19 @@ function startScanner() {
 function stopScanner() {
     if (html5QrCode) {
         html5QrCode.stop().then(() => {
+            html5QrCode = null;
             startScanBtn.style.display = "inline-block";
             stopScanBtn.style.display = "none";
+            // Remove the video container
+            const oldVideo = document.getElementById("qr-video");
+            if (oldVideo) oldVideo.remove();
         });
+    } else {
+        // Remove the video container if exists
+        const oldVideo = document.getElementById("qr-video");
+        if (oldVideo) oldVideo.remove();
+        startScanBtn.style.display = "inline-block";
+        stopScanBtn.style.display = "none";
     }
 }
 
