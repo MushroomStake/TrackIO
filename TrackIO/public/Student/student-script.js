@@ -623,7 +623,7 @@ async function generateStudentQRCode(user) {
             value: qrData,
             size: 200,
             background: 'white',
-            foreground: 'black'
+            foreground: 'black',
         });
 
         // Add download button
@@ -632,7 +632,7 @@ async function generateStudentQRCode(user) {
             downloadBtn = document.createElement('button');
             downloadBtn.id = 'download-qr-btn';
             downloadBtn.textContent = 'Download QR Code';
-            downloadBtn.style.marginTop = '12px';
+            downloadBtn.style.margin = '50px';
             downloadBtn.onclick = function () {
                 // Get the canvas and trigger download
                 const canvas = document.getElementById('student-qr-code');
@@ -665,9 +665,9 @@ function renderProgressCircle(current, total, color = "#1976d2", label = "OJT Pr
     const percent = Math.min(100, (current / total) * 100);
     return `
         <div class="progress-circle" title="${label}: ${current.toFixed(2)}/${total}h (${Math.round(percent)}%)">
-            <svg width="70" height="70">
-                <circle cx="35" cy="35" r="30" stroke="#eee" stroke-width="7" fill="none"/>
-                <circle cx="35" cy="35" r="30" stroke="${color}" stroke-width="7" fill="none"
+            <svg width="100" height="100">
+                <circle cx="52" cy="52" r="45" stroke="#eee" stroke-width="7" fill="none"/>
+                <circle cx="52" cy="52" r="45" stroke="${color}" stroke-width="7" fill="none"
                     stroke-dasharray="${2 * Math.PI * 30}"
                     stroke-dashoffset="${2 * Math.PI * 30 * (1 - percent / 100)}"
                     style="transition:stroke-dashoffset 0.6s;"/>
