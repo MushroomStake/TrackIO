@@ -1,9 +1,20 @@
+body{
+  margin-left: 250px;
+}
+
+@media (max-width: 600px) {
+  body{
+    margin: 0;
+  }
+}
+
 .documents-section {
   background: #f9f9f9;
   border-radius: 10px;
   padding: 24px 32px;
   margin-bottom: 32px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-left: 250px;
 }
 
 .doc-cards-row {

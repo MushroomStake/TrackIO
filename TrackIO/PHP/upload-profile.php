@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $block = $_POST['block'] ?? '';
 
     // Save file
-    $uploadDir = '../uploads/'; // Go up 3 levels from PHP to htdocs/TrackIO/uploads/
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    $targetDir = realpath(__DIR__ . '/../uploads/') . '/';
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
     }
     $fileName = uniqid() . "_" . basename($file['name']);
-    $relativePath = "TRACKIO/TrackIO/uploads/" . $fileName;
-    $targetPath = $uploadDir . $fileName;
+    $relativePath = "/uploads/" . $fileName;
+    $targetPath = $targetDir . $fileName;
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
         $stmt = $conn->prepare("UPDATE students SET profile_pic = ?, first_name = ?, last_name = ?, middle_name = ?, contact_no = ?, dob = ?, college_name = ?, age = ?, sex = ?, college_program = ?, year_level = ?, block = ? WHERE uid = ?");

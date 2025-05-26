@@ -30,6 +30,9 @@ onAuthStateChanged(auth, (user) => {
 const companiesList = document.getElementById("companies-list");
 let allCompanies = []; // [{company, cardElement, companyId}, ...]
 
+let currentPage = 1;
+const COMPANIES_PER_PAGE = 8;
+
 async function loadCompanies() {
 
     // Clear previous markers
@@ -37,10 +40,6 @@ async function loadCompanies() {
 
     const companiesRef = collection(db, "companies");
     const q = query(companiesRef, where("open_for_ojt", "==", true));
-    
-    document.addEventListener("studentDataReady", () => {
-        loadCompanies();
-    });
     
 
     try {
@@ -76,6 +75,7 @@ async function loadCompanies() {
             // Check if the student has applied (now in subcollection)
             let statusHTML = '';
             let isAccepted = false;
+            let badgeHTML = '';
             if (studentData?.email) {
                 const applicationsCollection = collection(db, "companies", companyId, "applications");
                 const qApp = query(applicationsCollection, where("student_email", "==", studentData.email));
@@ -83,15 +83,19 @@ async function loadCompanies() {
 
                 if (!res.empty) {
                     const applicationStatus = res.docs[0].data().status;
+                    const appliedRole = res.docs[0].data().applied_role;
 
                     if (applicationStatus === "pending") {
                         statusHTML = `<p class="application-status pending">Status: <strong>Pending</strong></p>`;
+                        badgeHTML = `<span class="application-badge pending" aria-label="Application Status: Pending">Pending</span>`;
                     } else if (applicationStatus === "accepted") {
                         statusHTML = `<p class="application-status accepted">✅ <strong>Currently Working Here</strong></p>`;
+                        badgeHTML = `<span class="application-badge accepted" aria-label="Application Status: Accepted">Accepted</span>`;
                         isAccepted = true;
                         acceptedCompanyId = companyId;
                     } else if (applicationStatus === "declined") {
                         statusHTML = `<p class="application-status declined">Status: <strong>Declined</strong></p>`;
+                        badgeHTML = `<span class="application-badge declined" aria-label="Application Status: Declined">Declined</span>`;
                     }
                 }
             }
@@ -267,7 +271,8 @@ async function loadCompanies() {
                 });
 
                 const marker = L.marker([company.lat, company.lng], { icon: greenIcon });
-                marker.bindPopup(`<b>${company.name}</b>`);
+                // 1. Add location name in the map marker popup description:
+                marker.bindPopup(`<b>${company.name}</b><br>${company.location_name || ""}<br><span style="color:#888;">${company.description || ""}</span>`);
                 marker.companyName = company.name.toLowerCase();
 
                 markersCluster.addLayer(marker);
@@ -278,12 +283,12 @@ async function loadCompanies() {
         }
 
         // If student is working somewhere, show that card on top
-        if (acceptedCompanyCard) {
-            const acceptedHeader = document.createElement("h3");
-            acceptedHeader.innerText = "You are currently working at this company:";
-            companiesList.prepend(acceptedCompanyCard);
-            companiesList.prepend(acceptedHeader);
-        }
+if (acceptedCompanyCard) {
+    const acceptedHeader = document.createElement("h3");
+    acceptedHeader.innerHTML = "You are currently working at this company:";
+    companiesList.prepend(acceptedCompanyCard);
+    companiesList.prepend(acceptedHeader);
+}
 
         // After rendering 10 companies:
         if (querySnapshot.docs.length > 10) {
@@ -302,6 +307,41 @@ async function loadCompanies() {
                 });
             };
             companiesList.appendChild(showMoreBtn);
+        }
+
+        // --- Pagination Logic ---
+        const totalPages = Math.ceil(allCompanies.length / COMPANIES_PER_PAGE);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const startIdx = (currentPage - 1) * COMPANIES_PER_PAGE;
+        const paginatedCompanies = allCompanies.slice(startIdx, startIdx + COMPANIES_PER_PAGE);
+
+        companiesList.innerHTML = "";
+        paginatedCompanies.forEach(({ cardElement }) => {
+            companiesList.appendChild(cardElement);
+        });
+
+        // Render paginator
+        const paginationDiv = document.getElementById("companies-pagination");
+        if (totalPages > 1) {
+            paginationDiv.innerHTML = `
+                <button id="prev-page" ${currentPage === 1 ? "disabled" : ""}>Prev</button>
+                <span>Page ${currentPage} of ${totalPages}</span>
+                <button id="next-page" ${currentPage === totalPages ? "disabled" : ""}>Next</button>
+            `;
+            document.getElementById("prev-page").onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadCompanies();
+                }
+            };
+            document.getElementById("next-page").onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadCompanies();
+                }
+            };
+        } else {
+            paginationDiv.innerHTML = "";
         }
     } catch (error) {
         console.error("Error fetching companies:", error);
@@ -380,11 +420,6 @@ function showCompanyDetails(companyId) {
                 if (companyTypeElement) companyTypeElement.innerText = company.type;
                 if (companyDescriptionElement) companyDescriptionElement.innerText = company.description;
                 if (companyEmailElement) companyEmailElement.innerText = company.email;
-                if (companyLocationElement) {
-                    companyLocationElement.innerText = company.location_name ? company.location_name : "Not specified";
-                    companyLocationElement.setAttribute("data-lat", company.lat);
-                    companyLocationElement.setAttribute("data-lng", company.lng);
-                }
                 if (companyOjtStatusElement) companyOjtStatusElement.innerText = company.open_for_ojt ? "Yes" : "No";
 
                 if (profileImage) {
@@ -466,12 +501,12 @@ document.addEventListener("click", async function (event) {
         // Find the company object
         const companyObj = allCompanies.find(c => c.companyId === companyId)?.company;
         const roleSelect = document.getElementById('apply-role');
-        if (roleSelect && companyObj && Array.isArray(companyObj.ojt_positions)) {
-            roleSelect.innerHTML = '<option value="">-- Select Position --</option>' +
-                companyObj.ojt_positions.map(pos =>
-                    `<option value="${pos.title}">${pos.title}</option>`
-                ).join('');
-        }
+if (roleSelect && companyObj && Array.isArray(companyObj.ojt_positions)) {
+    roleSelect.innerHTML = '<option value="">-- Select Position --</option>' +
+        companyObj.ojt_positions.map(pos =>
+            `<option value="${pos.title}">${pos.title}</option>`
+        ).join('');
+}
         openModal(applyModal);
     }
 
@@ -563,6 +598,7 @@ document.body.addEventListener("click", function(event) {
         const lng = parseFloat(document.getElementById("company-location").getAttribute("data-lng"));
         if (!isNaN(lat) && !isNaN(lng)) {
             map.setView([lat, lng], 15);
+            window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
         }
         closeModalWindow(modal);
     }
@@ -638,17 +674,21 @@ applyForm.addEventListener('submit', async function (e) {
                 alert("You already applied to this company.");
                 return;
             }
+const appliedRole = document.getElementById('apply-role') ? document.getElementById('apply-role').value : "";
 
-            await addDoc(applicationsCollection, {
-                student_email: studentData.email,
-                lastName: studentData.lastName || "",
-                firstName: studentData.firstName || "",
-                middleName: studentData.middleName || "",
-                resume_filename: data.resume_filename,
-                status: "pending",
-                applied_role: document.getElementById('apply-role').value || "",
-                uploaded_at: serverTimestamp()
-            });
+await addDoc(applicationsCollection, {
+    student_email: studentData.email,
+    lastName: studentData.lastName || "",
+    firstName: studentData.firstName || "",
+    middleName: studentData.middleName || "",
+    resume_filename: data.resume_filename,
+    status: "pending",
+    applied_role: appliedRole, // <-- use the variable here
+    program: studentData.program || "",
+    yearLevel: studentData.yearLevel || "",
+    profile_pic: studentData.profile_pic || "",
+    uploaded_at: serverTimestamp()
+});
 
             alert("Resume info saved in Firestore with pending status.");
         } else {
@@ -826,5 +866,23 @@ const companyModalHTML = `
 
 // Append the modal HTML to the document body
 document.body.insertAdjacentHTML('beforeend', companyModalHTML);
+
+companiesList.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+        const card = e.target.closest(".company-card");
+        if (card) {
+            const detailsBtn = card.querySelector(".view-info-button");
+            if (detailsBtn) detailsBtn.click();
+        }
+    }
+});
+
+// After building allCompanies array and before paginating/rendering:
+allCompanies.sort((a, b) => {
+    // Accepted company first
+    if (a.isAccepted && !b.isAccepted) return -1;
+    if (!a.isAccepted && b.isAccepted) return 1;
+    return 0;
+});
 
 

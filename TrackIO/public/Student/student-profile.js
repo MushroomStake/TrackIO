@@ -40,7 +40,7 @@ async function fetchAndLoadStudentProfile(user) {
             document.getElementById("profile-block").value = studentData.block || "";
 
             const profilePhoto = studentData.profile_pic
-                ? `http://localhost/TrackIO/${studentData.profile_pic}`
+                ? `../../${studentData.profile_pic}`
                 : "../img/sample-profile.jpg";
             document.getElementById("profile-photo").src = profilePhoto;
 
@@ -106,7 +106,7 @@ async function updateStudentProfile(user) {
             formData.append("yearLevel", yearLevel);
             formData.append("block", block);
 
-            const response = await fetch("http://localhost/TrackIO/TRACKIO/TrackIO/PHP/upload-profile.php", {
+            const response = await fetch("../../PHP/upload-profile.php", {
                 method: "POST",
                 body: formData
             });
@@ -127,7 +127,7 @@ async function updateStudentProfile(user) {
                 });
 
                 const filename = relativePath.split('/').pop();
-                document.getElementById("profile-photo").src = `http://localhost/TrackIO/TRACKIO/TrackIO/uploads/${filename}`;
+                document.getElementById("profile-photo").src = `../../uploads/${filename}`;
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
                 throw new Error("Failed to parse JSON response from PHP backend.");

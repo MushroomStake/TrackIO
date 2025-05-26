@@ -437,3 +437,55 @@ button:hover {
     border-radius: 8px;
     margin-bottom: 12px;
 }
+
+/* Flex layout for dashboard sections on desktop */
+.dashboard-flex {
+    display: flex;
+    gap: 150px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+#student-qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 220px;
+}
+.ojt-progress-container {
+    flex: 1;
+    min-width: 220px;
+}
+.status-summary-container {
+    flex: 1;
+    min-width: 220px;
+}
+
+/* Responsive: stack vertically on mobile */
+@media (max-width: 900px) {
+    .dashboard-flex {
+        flex-direction: column;
+        gap: 18px;
+    }
+}
+
+/* Highlighted Welcome Section */
+.welcome-highlight {
+    color: black;
+    text-align: center;
+    padding: 32px 16px 24px 16px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.08);
+}
+.welcome-title {
+    font-size: 2em;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+.welcome-user {
+    font-size: 1.3em;
+    font-weight: 500;
+    display: block;
+    margin-top: 6px;
+}

@@ -305,10 +305,6 @@ async function updateLocation(position) {
 
     console.log("Real-time location:", { latitude, longitude, accuracy });
 
-    // Update the location element
-    const locationElement = document.getElementById('location');
-    locationElement.textContent = `Latitude: ${latitude}, Longitude: ${longitude}, Accuracy: ${accuracy} meters`;
-
     const user = auth.currentUser; // Get the current user
     if (!user || !user.uid) {
         console.error("No authenticated user found.");
@@ -392,26 +388,6 @@ function isStudentInsideAnyGeofence(studentLatLng) {
 
 // Function to handle location errors
 function handleLocationError(error) {
-    const locationElement = document.getElementById('location');
-    switch (error.code) {
-        case error.PERMISSION_DENIED:
-            console.error("User denied the request for Geolocation.");
-            locationElement.textContent = "Location access denied. Please enable location permissions.";
-            break;
-        case error.POSITION_UNAVAILABLE:
-            console.error("Location information is unavailable.");
-            locationElement.textContent = "Unable to determine location. Please try again later.";
-            break;
-        case error.TIMEOUT:
-            console.error("The request to get user location timed out.");
-            locationElement.textContent = "Location request timed out. Please ensure you have a stable connection.";
-            break;
-        default:
-            console.error("An unknown error occurred.", error);
-            locationElement.textContent = "An unknown error occurred while fetching location.";
-            break;
-    }
-
     // Stop real-time location tracking as a fallback
     stopRealTimeLocationTracking();
 }

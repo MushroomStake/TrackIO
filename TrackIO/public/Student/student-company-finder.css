@@ -101,12 +101,21 @@ body {
     text-align: left;
 }
 
+/* Companies Section */
+.companies-section {
+    max-width: 1200px;
+    margin: 0 auto 32px auto;
+    padding: 0 16px;
+}
+
 /* Companies List */
 #companies-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
+    gap: 24px;
+    justify-content: flex-start;
+    align-items: stretch;
+    min-height: 300px;
     margin: 20px auto;
     padding: 20px;
     margin-left: 280px;
@@ -119,13 +128,15 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(25,118,210,0.07);
     border-left: 5px solid #1976d2;
-    margin-bottom: 28px;
-    transition: box-shadow 0.2s;
+    width: 420px;
+    min-width: 280px;
+    max-width: 420px;
+    margin-bottom: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: space-between;
+    transition: box-shadow 0.2s;
     position: relative;
-    margin-left: 130px; 
 }
 
 .company-card.accepted {
@@ -620,4 +631,10 @@ body {
 .compact-section,
 .expand-section {
     transition: all 0.2s;
+}
+
+@media (max-width: 700px) {
+    .company-card { flex-direction: column; padding: 10px; }
+    .company-info { flex-direction: column; align-items: flex-start; }
+    .company-logo { width: 48px; height: 48px; }
 }

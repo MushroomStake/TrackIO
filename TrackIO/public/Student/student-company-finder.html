@@ -56,10 +56,12 @@
         <input type="text" id="search-input" placeholder="Search location or company...">
         <ul id="suggestions"></ul>
     </div>
-    <!-- Companies List -->
-    <div id="companies-list" class="companies-list">
-        <!-- Company cards will be dynamically inserted here -->
-    </div>
+    <!-- Companies Section -->
+<div class="companies-section">
+    <div id="companies-list" class="companies-list"></div>
+    <div id="companies-pagination" class="companies-pagination"></div>
+</div>
+    
 
     <!-- Modals -->
  <div id="company-modal" class="company-modal hidden">
@@ -75,7 +77,6 @@
 <div class="modal-body">
     <p id="company-description"></p>
     <p><strong>Contact Email:</strong> <span id="company-email"></span></p>
-    <p><strong>Location:</strong> <span id="company-location"></span></p>
     <p><strong>Open for OJT:</strong> <span id="company-ojt-status"></span></p>
     <div class="business-proof-container">
         <h3>Business Proof</h3>

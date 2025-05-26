@@ -64,21 +64,32 @@ async function loadApplicants(companyId, searchTerm = "") {
             return; // Skip this applicant
         }
 
+        const profilePic = data.profile_pic
+            ? `../../${data.profile_pic.replace(/^\/+/, '')}`
+            : "../img/sample-profile.jpg";
+
         const applicantCard = document.createElement("div");
         applicantCard.className = "applicant-card";
 
-        applicantCard.innerHTML = `
-            <p><strong>Student:</strong> ${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}</p>
-            <p><strong>Program:</strong> ${data.program || ""} | <strong>Year:</strong> ${data.yearLevel || ""} | <strong>Block:</strong> ${data.block || ""}</p>
-            <p><strong>Email:</strong> ${data.email || ""}</p>
-            <p><strong>Resume:</strong> <a href="../../uploaded-resume/${data.resume_filename}" target="_blank">View</a></p>
-            <p><strong>Status:</strong> <span class="status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></p>
-            ${status === "pending" ? `
-                <button class="accept-btn" data-id="${docSnap.id}" aria-label="Accept applicant">Accept</button>
-                <button class="decline-btn" data-id="${docSnap.id}" aria-label="Decline applicant">Decline</button>
-            ` : ""}
-            <button class="remove-applicant-btn" data-id="${docSnap.id}" aria-label="Remove applicant from company" style="background:#e53935;margin-top:8px;">Remove from Company</button>
-        `;
+applicantCard.innerHTML = `
+    <div class="student-profile">
+        <img class="student-profile-pic" src="${profilePic}" alt="Profile photo of ${data.lastName || ""}, ${data.firstName || ""}" />
+        <div class="student-profile-info">
+            <div class="student-profile-name">${data.lastName || ""}, ${data.firstName || ""} ${data.middleName || ""}</div>
+            <div class="student-profile-email">${data.email || ""}</div>
+            <div class="student-profile-program">
+                ${data.program || ""}${data.yearLevel ? ` | Year: ${data.yearLevel}` : ""}${data.applied_role ? ` | Role: ${data.applied_role}` : ""}
+            </div>
+        </div>
+    </div>
+    <p><strong>Resume:</strong> <a href="../../uploaded-resume/${data.resume_filename}" target="_blank">View</a></p>
+    <p><strong>Status:</strong> <span class="status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></p>
+    ${status === "pending" ? `
+        <button class="accept-btn" data-id="${docSnap.id}" aria-label="Accept applicant">Accept</button>
+        <button class="decline-btn" data-id="${docSnap.id}" aria-label="Decline applicant">Decline</button>
+    ` : ""}
+    <button class="remove-applicant-btn" data-id="${docSnap.id}" aria-label="Remove applicant from company" style="background:#e53935;margin-top:8px;">Remove from Company</button>
+`;
 
         container.appendChild(applicantCard);
     });

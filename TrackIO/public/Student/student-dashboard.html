@@ -49,28 +49,31 @@
         <div id="loading-spinner"></div>
     <!-- Main Section -->
     <div class="main-content">
-        <div class="dashboard-section">
-                            <p>Welcome! </p>
-         <span id="user-name"></span>
-         <span id="user-email" style="display:none;"></span>
-         <br>
-
+         <div class="dashboard-section welcome-highlight">
+            <p class="welcome-title">Welcome!</p>
+            <span id="user-name" class="welcome-user"></span>
+            <span id="user-email" style="display:none;"></span>
         </div>
-        <div class="dashboard-section">
-        <div id="student-qr-section">
-            <canvas id="student-qr-code"></canvas>
-        </div>
-            <h2>OJT Progress</h2>
-            <div id="student-ojt-progress"></div>
-        </div>
-        <div class="dashboard-section">
-            <h2>Today's Status</h2>
-            <div id="today-status"></div>
-        </div>
-        <div class="dashboard-section">
-            <h2>Attendance Summary</h2>
-            <div id="attendance-summary"></div>
-        </div>
+        <div class="dashboard-section dashboard-flex">
+    <div id="student-qr-section">
+        <canvas id="student-qr-code"></canvas>
+        <button id="download-qr-btn" style="margin-top:16px;">Download QR Code</button>
+    </div>
+    <div class="ojt-progress-container">
+        <h2>OJT Progress</h2>
+        <div id="student-ojt-progress"></div>
+    </div>
+</div>
+        <div class="dashboard-section dashboard-flex">
+    <div class="status-summary-container">
+        <h2>Today's Status</h2>
+        <div id="today-status"></div>
+    </div>
+    <div class="status-summary-container">
+        <h2>Attendance Summary</h2>
+        <div id="attendance-summary"></div>
+    </div>
+</div>
         <div class="dashboard-section">
             <h2>Calendar</h2>
             <div id="calendar"></div>
@@ -82,7 +85,6 @@
         <div class="dashboard-section">
             <h2>Location</h2>
             <div id="map"></div>
-            <div id="location"></div>
         </div>
     </div>
 

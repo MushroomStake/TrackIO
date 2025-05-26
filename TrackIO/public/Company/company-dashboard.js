@@ -336,7 +336,7 @@ onAuthStateChanged(auth, async user => {
         const data = docSnap.data();
         const email = (data.student_email || "").toLowerCase();
         let profilePic = emailToProfilePic[email]
-            ? `http://localhost/TrackIO/${emailToProfilePic[email]}`
+            ? `../../${emailToProfilePic[email].replace(/^\/+/, '')}`
             : "../img/sample-profile.jpg";
         applicants.push({
             ...data,

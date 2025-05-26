@@ -234,3 +234,38 @@ button, .accept-btn, .decline-btn {
         margin-left: 0 !important;
     }
 }
+
+/* Student Profile Card Section */
+.student-profile {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 10px;
+}
+.student-profile-pic {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #1976d2;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(25,118,210,0.08);
+}
+.student-profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.student-profile-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #1976d2;
+}
+.student-profile-email {
+    font-size: 0.97em;
+    color: #555;
+}
+.student-profile-program {
+    font-size: 0.97em;
+    color: #888;
+}
