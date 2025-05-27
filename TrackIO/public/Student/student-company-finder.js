@@ -658,9 +658,8 @@ applyForm.addEventListener('submit', async function (e) {
     .then(response => response.json())
     .then(async data => {
         if (data.status === 'success') {
-            alert(data.message);
-            closeModalWindow(applyModal);
-            applyForm.reset();
+            // Get the selected role BEFORE resetting/closing the modal!
+            const appliedRole = document.getElementById('apply-role') ? document.getElementById('apply-role').value : "";
 
             // Store application in subcollection inside companies/{companyId}/applications
             const companyDocRef = doc(db, "companies", companyId);
@@ -674,23 +673,24 @@ applyForm.addEventListener('submit', async function (e) {
                 alert("You already applied to this company.");
                 return;
             }
-const appliedRole = document.getElementById('apply-role') ? document.getElementById('apply-role').value : "";
 
-await addDoc(applicationsCollection, {
-    student_email: studentData.email,
-    lastName: studentData.lastName || "",
-    firstName: studentData.firstName || "",
-    middleName: studentData.middleName || "",
-    resume_filename: data.resume_filename,
-    status: "pending",
-    applied_role: appliedRole, // <-- use the variable here
-    program: studentData.program || "",
-    yearLevel: studentData.yearLevel || "",
-    profile_pic: studentData.profile_pic || "",
-    uploaded_at: serverTimestamp()
-});
+            await addDoc(applicationsCollection, {
+                student_email: studentData.email,
+                lastName: studentData.lastName || "",
+                firstName: studentData.firstName || "",
+                middleName: studentData.middleName || "",
+                resume_filename: data.resume_filename,
+                status: "pending",
+                applied_role: appliedRole, // <-- now this will have the correct value
+                program: studentData.program || "",
+                yearLevel: studentData.yearLevel || "",
+                profile_pic: studentData.profile_pic || "",
+                uploaded_at: serverTimestamp()
+            });
 
             alert("Resume info saved in Firestore with pending status.");
+            closeModalWindow(applyModal);
+            applyForm.reset();
         } else {
             alert("Upload failed: " + data.message);
         }
