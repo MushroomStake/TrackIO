@@ -243,7 +243,6 @@ saveBtn.onclick = async () => {
       name: nameInput.value,
       description: descInput.value,
       type: typeInput.value,
-      open_for_ojt: ojtToggle.checked,
       lat: marker?.lat || null, // Ensure marker's lat is stored
       lng: marker?.lon || null, // Ensure marker's lon is stored
       profile_photo: profilePath,
@@ -265,7 +264,7 @@ saveBtn.onclick = async () => {
   
     if (proofPath) showProofPreview(proofPath);
   
-    [nameInput, descInput, typeInput, ojtToggle, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = true);
+    [nameInput, descInput, typeInput, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = true);
     saveBtn.innerText = "Saved";
     saveBtn.disabled = true;
     saveBtn.style.display = "none";
@@ -275,7 +274,7 @@ saveBtn.onclick = async () => {
 
 // Edit button handler
 editBtn.onclick = () => {
-  [nameInput, descInput, typeInput, ojtToggle, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = false);
+  [nameInput, descInput, typeInput, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = false);
   saveBtn.disabled = false;
   saveBtn.innerText = "Save";
   saveBtn.style.display = "inline-block";
@@ -293,7 +292,6 @@ onAuthStateChanged(auth, async (user) => {
       nameInput.value = data.name || data.companyName || "";
       descInput.value = data.description || "";
       typeInput.value = data.type || "";
-      ojtToggle.checked = data.open_for_ojt || false;
 
       // Set the saved location if lat and lng are available
       if (data.lat && data.lng) {
@@ -306,7 +304,7 @@ onAuthStateChanged(auth, async (user) => {
       if (data.business_proof) showProofPreview(data.business_proof);
 
       const isComplete = data.is_profile_complete === true;
-      [nameInput, descInput, typeInput, ojtToggle, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = isComplete);
+      [nameInput, descInput, typeInput, profilePicInput, proofUpload, searchInput].forEach(i => i.disabled = isComplete);
       saveBtn.disabled = isComplete;
       saveBtn.style.display = isComplete ? "none" : "inline-block";
       editBtn.style.display = isComplete ? "inline-block" : "none";
