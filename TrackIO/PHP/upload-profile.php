@@ -1,30 +1,20 @@
 <?php
 require 'db.php';
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_FILES['file']) || !isset($_POST['uid'])) {
+    if (!isset($_FILES['file'])) {
         echo json_encode([
             "success" => false,
-            "error" => "Missing file or uid"
+            "error" => "Missing file"
         ]);
         exit;
     }
 
-    $uid = $_POST['uid'];
     $file = $_FILES['file'];
-    $firstName = $_POST['firstName'] ?? '';
-    $lastName = $_POST['lastName'] ?? '';
-    $middleName = $_POST['middleName'] ?? '';
-    $contactNo = $_POST['contactNo'] ?? '';
-    $dob = $_POST['dob'] ?? '';
-    $collegeName = $_POST['collegeName'] ?? '';
-    $age = $_POST['age'] ?? '';
-    $sex = $_POST['sex'] ?? '';
-    $collegeProgram = $_POST['collegeProgram'] ?? '';
-    $yearLevel = $_POST['yearLevel'] ?? '';
-    $block = $_POST['block'] ?? '';
 
     // Save file
     $targetDir = realpath(__DIR__ . '/../uploads/') . '/';
@@ -36,25 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $targetPath = $targetDir . $fileName;
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-        $stmt = $conn->prepare("UPDATE students SET profile_pic = ?, first_name = ?, last_name = ?, middle_name = ?, contact_no = ?, dob = ?, college_name = ?, age = ?, sex = ?, college_program = ?, year_level = ?, block = ? WHERE uid = ?");
-        $stmt->bind_param("sssssssssssss",
-            $relativePath, $firstName, $lastName, $middleName, $contactNo, $dob,
-            $collegeName, $age, $sex, $collegeProgram, $yearLevel, $block, $uid
-        );
-
-        if ($stmt->execute()) {
-            echo json_encode([
-                "success" => true,
-                "filePath" => $relativePath
-            ]);
-        } else {
-            echo json_encode([
-                "success" => false,
-                "error" => "Database error: " . $stmt->error
-            ]);
-        }
-
-        $stmt->close();
+        echo json_encode([
+            "success" => true,
+            "filePath" => $relativePath
+        ]);
     } else {
         echo json_encode([
             "success" => false,
